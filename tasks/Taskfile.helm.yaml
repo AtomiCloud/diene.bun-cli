@@ -1,0 +1,16 @@
+version: '3'
+vars:
+  CHART: infra/root_chart
+tasks:
+  deps:
+    desc: 'Build chart dependencies'
+    cmds:
+      - helm dependency build {{.CHART}}
+  template:
+    desc: 'Render the chart templates (extra args via --)'
+    cmds:
+      - helm template {{.CHART}} {{.CLI_ARGS}}
+  debug:
+    desc: 'Render the chart templates with --debug'
+    cmds:
+      - helm template {{.CHART}} --debug {{.CLI_ARGS}}

@@ -1,0 +1,32 @@
+### Bun
+node_modules
+dist
+coverage
+*.tsbuildinfo
+tests
+
+### Build
+.target
+*.log
+
+### VCS
+.git
+.gitignore
+
+### AtomiCloud
+.kloop/
+
+### Dev
+.env
+.envrc
+.env.*
+!.env.example
+*.md
+!README.md
+
+### IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~

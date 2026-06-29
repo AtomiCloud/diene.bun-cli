@@ -1,0 +1,23 @@
+{
+  "name": "bun-cli",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Bun template baseline for AtomiCloud/diene.bun-cli",
+  "type": "module",
+  "module": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "ioredis": "^5.4.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@types/bun": "^1.1.14",
+    "@types/node": "^22.10.5",
+    "knip": "^5.41.1",
+    "should": "^13.2.3",
+    "testcontainers": "^10.16.0",
+    "typescript": "^5.7.3"
+  }
+}

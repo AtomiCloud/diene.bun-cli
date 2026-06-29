@@ -1,0 +1,6 @@
+[test]
+root = "tests/integration"
+timeout = 120000
+coverageReporter = ["text", "lcov"]
+coverageDir = "coverage/int"
+coverageSkipTestFiles = true
