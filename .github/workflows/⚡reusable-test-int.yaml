@@ -27,7 +27,7 @@ jobs:
       - name: Upload integration coverage to Codecov
         if: always()
         continue-on-error: true
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           files: coverage/int/lcov.info
           flags: int
