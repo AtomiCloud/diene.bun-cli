@@ -8,12 +8,16 @@ jobs:
     secrets: inherit
   unit:
     name: Unit Tests
-    uses: ./.github/workflows/⚡reusable-test-unit.yaml
+    uses: ./.github/workflows/⚡reusable-test.yaml
     secrets: inherit
+    with:
+      mode: unit
   int:
     name: Integration Tests
-    uses: ./.github/workflows/⚡reusable-test-int.yaml
+    uses: ./.github/workflows/⚡reusable-test.yaml
     secrets: inherit
+    with:
+      mode: int
   build:
     name: Build Validation
     uses: ./.github/workflows/⚡reusable-build.yaml
@@ -23,7 +27,7 @@ jobs:
     uses: ./.github/workflows/⚡reusable-docker.yaml
     secrets: inherit
     with:
-      image_name: diene-bun-base
+      image_name: diene-bun-cli
       dockerfile: ./infra/Dockerfile
   helm:
     name: Helm Chart

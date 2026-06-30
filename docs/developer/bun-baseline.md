@@ -44,13 +44,16 @@ pre-commit.
 ## Coverage gates
 
 - Unit coverage: `coverage/unit/lcov.info`.
-- Integration coverage: `coverage/int/lcov.info`.
+- Integration coverage: `coverage/int/lcov.info`. The integration suite excludes
+  `src/index.ts` and `src/lib/**` (covered by the unit suite) via
+  `coveragePathIgnorePatterns` in `bunfig.int.toml`.
 - The local coverage artifact is blocking.
 - Codecov upload is non-blocking and split by `unit` / `int` flags.
 - `codecov.yml` thresholds are informational by default.
 
 ## Build & runtime
 
+- Bun is the application runtime and build target.
 - `pls build` (and `scripts/ci/build.sh`) bundle `src/index.ts` to
   `dist/index.js` with `bun build --target bun`.
 - `infra/Dockerfile` is a multi-stage Bun image pinned by digest.

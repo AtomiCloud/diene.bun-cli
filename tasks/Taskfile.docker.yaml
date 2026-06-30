@@ -1,6 +1,6 @@
 version: '3'
 vars:
-  IMAGE: diene-bun-base:local
+  IMAGE: diene-bun-cli:local
 tasks:
   build:
     desc: 'Build the image locally (optional tag suffix via --, e.g. -- 1 -> :local-1)'
