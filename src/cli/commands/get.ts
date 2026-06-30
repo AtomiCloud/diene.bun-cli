@@ -92,7 +92,14 @@ export function registerGetCommand(
           key,
         );
       } finally {
-        await store.close();
+        // Guard close() so a teardown failure (e.g. quit() rejecting when Redis was never
+        // reachable) can't throw out of finally and mask the user-friendly error + exit code
+        // runGet already produced for that exact failure case.
+        try {
+          await store.close();
+        } catch (closeError) {
+          deps.io.error(`failed to close key-value backend cleanly: ${(closeError as Error).message}`);
+        }
       }
     });
 }

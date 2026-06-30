@@ -88,7 +88,14 @@ export function registerSetCommand(program: Command, deps: { createStore: () => 
       try {
         process.exitCode = await runSet({ store, io: deps.io }, namespace, key, value, options);
       } finally {
-        await store.close();
+        // Guard close() so a teardown failure (e.g. quit() rejecting when Redis was never
+        // reachable) can't throw out of finally and mask the user-friendly error + exit code
+        // runSet already produced for that exact failure case.
+        try {
+          await store.close();
+        } catch (closeError) {
+          deps.io.error(`failed to close key-value backend cleanly: ${(closeError as Error).message}`);
+        }
       }
     });
 }

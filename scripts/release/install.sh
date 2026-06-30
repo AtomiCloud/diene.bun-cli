@@ -57,7 +57,7 @@ curl -fsSL "${base}/checksums.txt" -o "${tmp}/checksums.txt"
 echo "🔐 verifying checksum ..."
 (
   cd "${tmp}"
-  expected="$(grep " ${archive}\$" checksums.txt | awk '{print $1}')"
+  expected="$(grep " ${archive}\$" checksums.txt | awk '{print $1}' || true)"
   [[ -n ${expected} ]] || {
     echo "❌ no checksum entry for ${archive}" >&2
     exit 1

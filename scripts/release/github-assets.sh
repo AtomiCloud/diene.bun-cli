@@ -22,7 +22,7 @@ set -euo pipefail
 
 TAG="${GITHUB_REF_NAME:-}"
 if [[ -z ${TAG} ]]; then
-  TAG="$(git describe --tags --abbrev=0)"
+  TAG="$(git describe --tags --abbrev=0 2>/dev/null || true)"
 fi
 [[ -n ${TAG} ]] || {
   echo "❌ could not resolve the release tag" >&2
