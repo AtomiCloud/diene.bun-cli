@@ -1,0 +1,47 @@
+name: ⚡ Reusable Smoke
+on:
+  workflow_call:
+    inputs:
+      binary:
+        description: Binary filename under dist/bin/ to smoke-test
+        required: true
+        type: string
+      runs_on:
+        description: JSON array of runner labels for this target
+        required: true
+        type: string
+      alpine_image:
+        description: When set, run the binary inside this Alpine image (proves the musl build runs on Alpine)
+        required: false
+        type: string
+        default: ''
+      platform:
+        description: Docker platform for the Alpine run (e.g. linux/amd64, linux/arm64)
+        required: false
+        type: string
+        default: ''
+jobs:
+  smoke:
+    name: Smoke
+    runs-on: ${{ fromJSON(inputs.runs_on) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download compiled binaries
+        uses: actions/download-artifact@v7
+        with:
+          name: cli-binaries
+          path: dist/bin
+      # Native rows (glibc linux + darwin) run the standalone binary directly. The darwin
+      # unquarantine is handled inside smoke.sh as a tolerant no-op.
+      - name: Smoke (native)
+        if: inputs.alpine_image == ''
+        run: ./scripts/release/smoke.sh "dist/bin/${{ inputs.binary }}"
+      # musl rows run the binary inside a stock Alpine image (FR5). The Bun musl build links
+      # libstdc++/libgcc, so libstdc++ is added (the apk package declares this dependency too);
+      # bash is added only as the test harness. The musl CLI binary is what is proven on Alpine.
+      - name: Smoke (alpine)
+        if: inputs.alpine_image != ''
+        run: |
+          docker run --rm --platform "${{ inputs.platform }}" \
+            -v "$PWD:/work" -w /work "${{ inputs.alpine_image }}" \
+            sh -c 'apk add --no-cache bash libstdc++ >/dev/null 2>&1 && bash ./scripts/release/smoke.sh "dist/bin/${{ inputs.binary }}"'

@@ -5,6 +5,7 @@
 ### Bun
 node_modules/
 dist/
+prebuilt/
 coverage/
 *.tsbuildinfo
 

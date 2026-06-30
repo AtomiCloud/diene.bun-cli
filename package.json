@@ -8,7 +8,17 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "bin": {
+    "bun-cli": "bin/bun-cli.ts"
+  },
+  "scripts": {
+    "cli": "bun run bin/bun-cli.ts",
+    "release:dry": "scripts/release/publish.sh --snapshot"
+  },
   "dependencies": {
+    "chalk": "5.6.2",
+    "commander": "15.0.0",
+    "inquirer": "14.0.2",
     "ioredis": "^5.11.1"
   },
   "devDependencies": {

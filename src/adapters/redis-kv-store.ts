@@ -18,7 +18,11 @@ export class RedisKeyValueStore implements IKeyValueStore {
     });
   }
 
-  async set(key: string, value: string): Promise<void> {
+  async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
+    if (ttlSeconds !== undefined) {
+      await this.client.set(key, value, 'EX', ttlSeconds);
+      return;
+    }
     await this.client.set(key, value);
   }
 

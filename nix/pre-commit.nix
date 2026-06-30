@@ -68,26 +68,6 @@ pre-commit-lib.run {
       language = "system";
     };
 
-    a-helm-docs = {
-      enable = true;
-      description = "Generate Helm chart documentation";
-      entry = "${packages.infralint}/bin/helm-docs --chart-search-root infra/root_chart";
-      files = "infra/root_chart/.*";
-      name = "Helm Docs";
-      pass_filenames = false;
-      language = "system";
-    };
-
-    a-helm-lint = {
-      enable = true;
-      description = "Lint Helm charts for best practices";
-      entry = "${packages.infrautils}/bin/helm lint infra/root_chart";
-      files = "infra/root_chart/.*";
-      name = "Helm Lint";
-      pass_filenames = false;
-      language = "system";
-    };
-
     a-infisical = {
       enable = true;
       description = "Scan for possible secrets";
@@ -119,7 +99,6 @@ pre-commit-lib.run {
       enable = true;
       excludes = [
         ".*(Changelog|README|CommitConventions).+(MD|md)"
-        ".*infra/root_chart.*"
         ".*node_modules.*"
         ".*dist/.*"
         ".*coverage/.*"

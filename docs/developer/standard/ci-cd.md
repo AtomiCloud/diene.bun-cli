@@ -45,36 +45,41 @@ Runs only after successful CI on main branch. Handles:
 
 Runs when a new version tag is pushed. Handles deployment operations.
 
-### Artifact Publishing Model (Docker & Helm)
+### Artifact Publishing Model (Docker & CLI binaries)
 
-Docker images and Helm charts publish through reusable workflows on two triggers:
+This repo is a **CLI baseline** — it publishes a Docker image and standalone CLI binaries
+(deb/rpm/apk/brew/GitHub release/Nix). Helm has been dropped (a CLI is not a deployed service),
+so there is no chart, `⚡reusable-helm.yaml`, or `scripts/ci/helm.sh`.
 
-| Trigger          | When                       | What happens                                                                                                                            |
-| ---------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| **CI** (commit)  | Every push                 | Build & push both image and chart, cached, tagged `<sha6>-<branch>`                                                                     |
-| **CD** (release) | `v*.*.*` tag (sem-release) | Re-run the same script with the semver — image gets the version tag (cached, so effectively a re-tag), chart is packaged at the version |
+| Trigger          | When                       | What happens                                                                                         |
+| ---------------- | -------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **CI** (commit)  | Every push                 | Build & push the Docker image (cached); cross-compile every CLI binary and smoke-test it per target  |
+| **CD** (release) | `v*.*.*` tag (sem-release) | Re-tag the image at the version; `scripts/release/publish.sh` packages + publishes every CLI channel |
 
 Key properties:
 
-- The logic lives in `./scripts/ci/docker.sh [version]` and
-  `./scripts/ci/helm.sh <chart_path> [version]`. An empty version = per-commit CI; a version
-  arg = release. The reusable workflows (`⚡reusable-docker.yaml`, `⚡reusable-helm.yaml`)
-  pass the version (`${{ github.ref_name }}` on CD).
+- The Docker logic lives in `./scripts/ci/docker.sh [version]` (`⚡reusable-docker.yaml`). The
+  binary pipeline lives in `scripts/release/compile.sh` (cross-compile) + `scripts/release/smoke.sh`
+  (`⚡reusable-compile.yaml` / `⚡reusable-smoke.yaml`), and `scripts/release/publish.sh` packages
+  and publishes on the release tag.
+- Release ownership (FR8): **semantic-release is the sole creator of the git tag and the GitHub
+  release**; GoReleaser runs with `release.disable: true` and `scripts/release/github-assets.sh`
+  uploads the archives/checksums/installer onto that one release.
 - Setup uses the shared AtomiCloud actions — `AtomiCloud/actions.setup-docker` for Docker and
-  `AtomiCloud/actions.setup-nix` for Helm (Helm runs in `nix develop .#cd`). Do **not** call
-  the underlying nscloud/buildx actions directly.
-- All Nix jobs (pre-commit, Helm, release) share the same Nix store cache via
+  `AtomiCloud/actions.setup-nix` for the Nix-backed jobs. Do **not** call the underlying
+  nscloud/buildx actions directly.
+- All Nix jobs (pre-commit, compile, release) share the same Nix store cache via
   `nscloud-cache-tag-atomi-nix-store-cache`.
-- There is **no cap** on the number of images or charts — add a caller job per `image_name`
-  / `chart_path`.
+- There is **no cap** on the number of images or compile targets — add a caller job per
+  `image_name`, or a row to `cliConfig.compileTargets` / the smoke matrix.
 
 ### Dev Shells
 
-| Shell        | Used by                         |
-| ------------ | ------------------------------- |
-| `.#ci`       | CI checks (pre-commit)          |
-| `.#cd`       | CD / artifact publishing (Helm) |
-| `.#releaser` | Semantic release                |
+| Shell        | Used by                                  |
+| ------------ | ---------------------------------------- |
+| `.#ci`       | CI checks (pre-commit, compile)          |
+| `.#cd`       | CD (Docker / Nix-backed deploy steps)    |
+| `.#releaser` | Semantic release + GoReleaser publishing |
 
 ## The Execution Pattern
 
@@ -115,14 +120,17 @@ Setup Nix -> Setup Caches -> nix develop -c ./scripts/ci/script.sh
 **Reusable workflow is responsible for:**
 
 - Setup (`AtomiCloud/actions.setup-nix@v3` or `AtomiCloud/actions.setup-docker@v2`)
-- Running the shell script from `scripts/ci/`
+- Running the shell script from `scripts/ci/` (or, for the CLI-binary compile/smoke pipeline,
+  the standalone-binary scripts under `scripts/release/` — e.g. `⚡reusable-compile.yaml` runs
+  `pls compile` → `scripts/release/compile.sh` and `⚡reusable-smoke.yaml` runs
+  `scripts/release/smoke.sh`; these run the binary directly and need no CI-only orchestration)
 
 ### Inputs: only when required
 
 Reusable workflows declare an input **only if they use it**. Cache keys no longer depend on
-platform/service, so `atomi_platform` / `atomi_service` are **not** required inputs — pre-commit
-and release take no inputs, `⚡reusable-docker.yaml` takes `image_name`/`dockerfile`/…, and
-`⚡reusable-helm.yaml` takes `chart_path`/`version`.
+platform/service, so `atomi_platform` / `atomi_service` are **not** required inputs — pre-commit,
+compile, and release take no inputs, `⚡reusable-docker.yaml` takes `image_name`/`dockerfile`/…, and
+`⚡reusable-smoke.yaml` takes `binary`/`runs_on`/`alpine_image`/`platform`.
 
 ### Example: Reusable Workflow Structure
 

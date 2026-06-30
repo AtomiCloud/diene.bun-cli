@@ -1,7 +1,7 @@
 version: '3'
 includes:
+  compile: tasks/Taskfile.compile.yaml
   docker: tasks/Taskfile.docker.yaml
-  helm: tasks/Taskfile.helm.yaml
   secret: tasks/Taskfile.secret.yaml
   unit:
     taskfile: tasks/Taskfile.test.yaml
@@ -27,6 +27,10 @@ tasks:
     desc: Build the neutral sample bundle to dist/
     cmds:
       - bun build ./src/index.ts --outdir ./dist --target bun
+  cli:
+    desc: 'Run the CLI locally (args via --, e.g. -- set ns key value)'
+    cmds:
+      - bun run bin/bun-cli.ts -- {{.CLI_ARGS}}
   lint:
     desc: Lints the whole code-base
     cmds:

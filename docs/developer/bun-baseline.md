@@ -67,7 +67,7 @@ pre-commit.
 
 - Codecov upload runs only in CI and is best-effort.
 - Integration tests and Docker image builds require a Docker runtime.
-- Unit, integration, build, Docker, and Helm are separate CI jobs.
+- Unit, integration, build, Docker, compile, and smoke are separate CI jobs.
 
 ## Template maintenance
 
@@ -83,9 +83,10 @@ template is expected to adapt:
 - **Sample source/tests** — `src/lib`, `src/adapters`, `src/index.ts`, and the
   matching `tests/` suites are illustrative and replaced per service.
 
-The Helm and secret task files (`tasks/Taskfile.helm.yaml`,
-`tasks/Taskfile.secret.yaml`) are intentionally left untouched by the Bun
-baseline — there is no direct Bun dependency on them.
+Helm has been dropped from this CLI baseline (a CLI is not a deployed service),
+so there is no Helm chart, task file, or CI job. The secret task file
+(`tasks/Taskfile.secret.yaml`) is intentionally left untouched by the Bun
+baseline — there is no direct Bun dependency on it.
 
 Merge ownership stays manual: CI is driven to green, but the actual merge is a
 human action.

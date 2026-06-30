@@ -12,7 +12,7 @@ updates:
     directory: /infra
     schedule:
       interval: daily
-  - package-ecosystem: helm
-    directory: /infra/root_chart
+  - package-ecosystem: gomod
+    directory: /
     schedule:
       interval: daily

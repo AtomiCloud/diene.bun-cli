@@ -1,0 +1,115 @@
+# GoReleaser v2 configuration for the Bun CLI.
+#
+# The binary is built by Bun (`task compile`), not Go. We mirror sulfone.iridium's pipeline:
+# GoReleaser compiles the goreleaser.go placeholder into each target slot, then the post-build
+# hook (scripts/release/goreleaser-shim.sh) swaps in the matching prebuilt Bun binary from the
+# prebuilt/ directory. Two build ids encode the Bun glibc/musl split:
+#   - glibc → linux (x64 baseline + arm64) and darwin arm64 → feeds deb/rpm/cask/archives
+#   - musl  → linux (x64 + arm64)                            → feeds apk
+#
+# Release ownership (FR8): semantic-release is the SOLE owner of the tag AND the GitHub release.
+# GoReleaser runs with `release.disable: true`, so it NEVER creates or appends a GitHub release —
+# this rules out the race where the tag-push that triggers CD beats semantic-release's release
+# creation and GoReleaser would otherwise create a duplicate. The GitHub-release assets (archives,
+# checksums, install.sh) are uploaded explicitly by scripts/release/github-assets.sh, which first
+# waits for the semantic-release release to exist. The cask still publishes to the tap; deb/rpm/apk
+# still go to Gemfury — neither touches the GitHub release.
+version: 2
+
+project_name: bun-cli
+
+before:
+  hooks: []
+
+builds:
+  - id: glibc
+    main: ./goreleaser.go
+    binary: bun-cli
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    ignore:
+      # Only darwin arm64 is shipped (no intel-mac — see spec Non-Goals).
+      - goos: darwin
+        goarch: amd64
+    hooks:
+      post:
+        - cmd: ./scripts/release/goreleaser-shim.sh "{{ .Path }}" glibc "{{ .Os }}" "{{ .Arch }}"
+  - id: musl
+    main: ./goreleaser.go
+    binary: bun-cli
+    goos: [linux]
+    goarch: [amd64, arm64]
+    hooks:
+      post:
+        - cmd: ./scripts/release/goreleaser-shim.sh "{{ .Path }}" musl "{{ .Os }}" "{{ .Arch }}"
+
+archives:
+  - id: glibc-archive
+    ids: [glibc]
+    formats: [tar.gz]
+    name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
+  - id: musl-archive
+    ids: [musl]
+    formats: [tar.gz]
+    name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}_musl'
+
+checksum:
+  name_template: 'checksums.txt'
+
+# glibc binary → deb/rpm (FR5/FR7).
+nfpms:
+  - id: glibc-packages
+    ids: [glibc]
+    package_name: bun-cli
+    formats: [deb, rpm]
+    maintainer: AtomiCloud <ops@atomi.cloud>
+    description: Sample CLI baseline over the AtomiCloud Redis key-value library
+    license: MIT
+    bindir: /usr/bin
+  # musl binary → apk (the one Bun-specific deviation, FR5). The Bun musl build dynamically
+  # links libstdc++/libgcc, so the apk declares that dependency (pulled by `apk add bun-cli`).
+  - id: musl-packages
+    ids: [musl]
+    package_name: bun-cli
+    formats: [apk]
+    maintainer: AtomiCloud <ops@atomi.cloud>
+    description: Sample CLI baseline over the AtomiCloud Redis key-value library
+    license: MIT
+    bindir: /usr/bin
+    dependencies:
+      - libstdc++
+
+# Homebrew tap (FR7). GoReleaser deprecated `brews` (formula generation) in favour of
+# `homebrew_casks` for pre-compiled binaries, so the baseline uses casks — no deprecation
+# warning, no migration debt baked into downstream CLI repos.
+homebrew_casks:
+  - name: bun-cli
+    ids: [glibc-archive]
+    binaries: [bun-cli]
+    # Because release.disable is true (FR8), GoReleaser cannot infer the default download URL,
+    # so we point the cask explicitly at the semantic-release GitHub release that
+    # scripts/release/github-assets.sh uploads the archives onto. (Repo restated here as a known
+    # config-bridge sync point — see src/config/cli-config.ts; YAML can't import the TS surface.)
+    url:
+      template: 'https://github.com/AtomiCloud/diene.bun-cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}'
+      verified: 'github.com/AtomiCloud/diene.bun-cli/'
+    repository:
+      owner: AtomiCloud
+      name: homebrew-tap
+      token: '{{ .Env.SCOOP_BREW_TOKEN }}'
+    homepage: https://github.com/AtomiCloud/diene.bun-cli
+    description: Sample CLI baseline over the AtomiCloud Redis key-value library
+    # The Bun binary ships unsigned, so macOS quarantines it on download. Strip the attribute
+    # on install so the cask runs without the "bun-cli is damaged" Gatekeeper error (mirrors the
+    # `xattr -d com.apple.quarantine` caveat in INSTALLATION.md).
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/bun-cli"]
+          end
+
+release:
+  # semantic-release is the sole creator of the GitHub release; GoReleaser must never create or
+  # touch it (assets are uploaded by scripts/release/github-assets.sh). disable guarantees this.
+  disable: true
