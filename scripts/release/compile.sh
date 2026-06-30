@@ -7,6 +7,11 @@ set -euo pipefail
 # scripts/config/print-config.ts, so there is exactly one source of truth. Each artifact is
 # emitted into a stable dist/bin/ layout that the smoke matrix and the GoReleaser shim consume.
 
+# Install dependencies first (matches scripts/ci/build.sh|test.sh|pre-commit.sh): the compile job
+# runs on a fresh runner with no node_modules, and `bun build --compile` must resolve the CLI's
+# runtime deps (commander/chalk/inquirer/ioredis). Idempotent + fast when already installed.
+./scripts/ci/setup.sh
+
 ENTRY="bin/bun-cli.ts"
 OUTDIR="${COMPILE_OUTDIR:-dist/bin}"
 
