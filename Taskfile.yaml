@@ -24,9 +24,9 @@ tasks:
     cmds:
       - rm -rf dist node_modules coverage
   build:
-    desc: Build the neutral sample bundle to dist/
+    desc: Build the CLI bundle to dist/
     cmds:
-      - bun build ./src/index.ts --outdir ./dist --target bun
+      - bun build ./bin/bun-cli.ts --outdir ./dist --target bun
   cli:
     desc: 'Run the CLI locally (args via --, e.g. -- set ns key value)'
     cmds:

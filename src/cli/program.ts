@@ -26,10 +26,19 @@ export interface ProgramDeps {
   readonly interactive: boolean;
 }
 
+/** REDIS_HOST/REDIS_PORT env overrides (needed under docker, where 127.0.0.1 is the container). */
+function resolveConnection(): RedisConnection {
+  const parsedPort = Number(process.env.REDIS_PORT);
+  return {
+    host: process.env.REDIS_HOST || cliConfig.redis.host,
+    port: Number.isInteger(parsedPort) && parsedPort > 0 && parsedPort <= 65535 ? parsedPort : cliConfig.redis.port,
+  };
+}
+
 /** Real dependencies wired against Redis, the console, and inquirer. */
 const defaultProgramDeps: ProgramDeps = {
   createStore: createRedisStore,
-  connection: { host: cliConfig.redis.host, port: cliConfig.redis.port },
+  connection: resolveConnection(),
   io: consoleIo,
   prompt: inquirerPrompt,
   interactive: Boolean(process.stdin.isTTY && process.stdout.isTTY),

@@ -31,6 +31,12 @@ plugins:
     version: 6.0.3
     config:
       changelogFile: Changelog.md
+  # Stamp the version into package.json (the CLI's --version and the nix package read it),
+  # committed below so binaries compiled at the tag report the real version (mirrors iridium).
+  - module: '@semantic-release/exec'
+    version: 6.0.3
+    config:
+      prepareCmd: scripts/release/bump.sh ${nextRelease.version}
   - module: '@semantic-release/git'
     version: 10.0.1
     config:
@@ -38,6 +44,7 @@ plugins:
       assets:
         - Changelog.md
         - Changelog.old.md
+        - package.json
         - docs/developer/CommitConventions.md
 
 # Angular Conventional Commit Example: https://github.com/angular/angular/blob/22b96b9/CONTRIBUTING.md#-commit-message-guidelines

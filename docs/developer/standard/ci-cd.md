@@ -70,7 +70,8 @@ Key properties:
 - All Nix jobs (pre-commit, compile, release) share the same Nix store cache via
   `nscloud-cache-tag-atomi-nix-store-cache`.
 - There is **no cap** on the number of images or compile targets — add a caller job per
-  `image_name`, or a row to `cliConfig.compileTargets` / the smoke matrix.
+  `image_name`, or a new target to `scripts/release/compile.sh` (+ the matching
+  `goreleaser-shim.sh` case and smoke-matrix row).
 
 ### Dev Shells
 
@@ -120,9 +121,9 @@ Setup Nix -> Setup Caches -> nix develop -c ./scripts/ci/script.sh
 
 - Setup (`AtomiCloud/actions.setup-nix@v3` or `AtomiCloud/actions.setup-docker@v2`)
 - Running the shell script from `scripts/ci/` (or, for the CLI-binary compile/smoke pipeline,
-  the standalone-binary scripts under `scripts/release/` — e.g. `⚡reusable-compile.yaml` runs
-  `pls compile` → `scripts/release/compile.sh` and `⚡reusable-smoke.yaml` runs
-  `scripts/release/smoke.sh`; these run the binary directly and need no CI-only orchestration)
+  the standalone-binary scripts under `scripts/release/` — `⚡reusable-compile.yaml` runs
+  `scripts/release/compile.sh` and `⚡reusable-smoke.yaml` runs `scripts/release/smoke.sh`
+  directly; CI shells lack `pls`, so workflows always call scripts, never task names)
 
 ### Inputs: only when required
 

@@ -88,6 +88,10 @@ let
           dontFixup = true;
           outputHashMode = "recursive";
           outputHashAlgo = "sha256";
+          # Pinned hash of node_modules. WHEN DEPENDENCIES CHANGE (package.json/bun.lock), this
+          # goes stale and `nix build .#bun-cli` fails with a hash mismatch. To update: set this
+          # to pkgs.lib.fakeHash, run `nix build .#bun-cli`, and copy the "got: sha256-..." value
+          # from the error back here.
           outputHash = "sha256-SpnLtJvmEIfnzXhU8odLN4Mj/2ap/TgxiX3VSOuDNnQ=";
         };
       in

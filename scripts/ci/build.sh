@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ARTIFACT="dist/index.js"
+ARTIFACT="dist/bun-cli.js"
 
 ./scripts/ci/setup.sh
 
-echo "🔨 Building sample bundle..."
-bun build ./src/index.ts --outdir ./dist --target bun
+echo "🔨 Building CLI bundle..."
+bun build ./bin/bun-cli.ts --outdir ./dist --target bun
 
 if [[ ! -f ${ARTIFACT} ]]; then
   echo "❌ Build artifact missing: ${ARTIFACT}" >&2

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Stamp the release version into package.json (semantic-release prepare step, mirrors iridium's
+# bump.sh). The CLI (--version) and the nix package both read package.json, and semantic-release
+# commits this before tagging, so binaries compiled at the tag report the real version.
+version="${1:?Usage: bump.sh <version>}"
+
+sed -i.bak -E "s/\"version\": \"[^\"]+\"/\"version\": \"${version}\"/" package.json
+rm -f package.json.bak
+echo "✅ package.json version -> ${version}"

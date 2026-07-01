@@ -67,7 +67,8 @@ native x64 host.
 - CI: `⚡reusable-compile.yaml` builds once on Linux and uploads the artifact; the `smoke` matrix
   in `ci.yaml` downloads it and runs `scripts/release/smoke.sh` per target.
 - `nix build .#bun-cli` builds the binary reproducibly via Nix (deps vendored as a fixed-output
-  derivation in `nix/packages.nix`).
+  derivation in `nix/packages.nix`). **When dependencies change**, the pinned `outputHash` there
+  goes stale — set it to `pkgs.lib.fakeHash`, build, and copy the real hash from the error.
 
 To add a target: add it to `scripts/release/compile.sh`, add the `goos/goarch` case to
 `scripts/release/goreleaser-shim.sh`, and add a row to the smoke matrix.

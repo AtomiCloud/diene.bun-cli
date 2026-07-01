@@ -49,6 +49,9 @@ brew install --cask atomicloud/tap/bun-cli
 
 ```bash
 docker run --rm ghcr.io/atomicloud/diene.bun-cli/diene-bun-cli:latest --help
+
+# the sample commands reach Redis via REDIS_HOST/REDIS_PORT (127.0.0.1 is the container itself)
+docker run --rm -e REDIS_HOST=my-redis ghcr.io/atomicloud/diene.bun-cli/diene-bun-cli:latest set ns key value
 ```
 
 ## Nix
