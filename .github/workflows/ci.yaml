@@ -43,32 +43,14 @@ jobs:
           - target: linux-x64-baseline
             binary: bun-cli-linux-x64-baseline
             runs_on: '["ubuntu-22.04"]'
-            alpine_image: ''
-            platform: ''
           - target: linux-arm64
             binary: bun-cli-linux-arm64
             runs_on: '["ubuntu-24.04-arm"]'
-            alpine_image: ''
-            platform: ''
-          - target: linux-x64-musl
-            binary: bun-cli-linux-x64-musl
-            runs_on: '["ubuntu-22.04"]'
-            alpine_image: 'alpine:3'
-            platform: 'linux/amd64'
-          - target: linux-arm64-musl
-            binary: bun-cli-linux-arm64-musl
-            runs_on: '["ubuntu-24.04-arm"]'
-            alpine_image: 'alpine:3'
-            platform: 'linux/arm64'
           - target: darwin-arm64
             binary: bun-cli-darwin-arm64
             runs_on: '["macos-14"]'
-            alpine_image: ''
-            platform: ''
     uses: ./.github/workflows/⚡reusable-smoke.yaml
     secrets: inherit
     with:
       binary: ${{ matrix.binary }}
       runs_on: ${{ matrix.runs_on }}
-      alpine_image: ${{ matrix.alpine_image }}
-      platform: ${{ matrix.platform }}

@@ -4,16 +4,8 @@
   "private": true,
   "description": "Bun template baseline for AtomiCloud/diene.bun-cli",
   "type": "module",
-  "module": "src/index.ts",
-  "exports": {
-    ".": "./src/index.ts"
-  },
   "bin": {
     "bun-cli": "bin/bun-cli.ts"
-  },
-  "scripts": {
-    "cli": "bun run bin/bun-cli.ts",
-    "release:dry": "scripts/release/publish.sh --snapshot"
   },
   "dependencies": {
     "chalk": "5.6.2",

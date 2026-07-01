@@ -1,9 +1,8 @@
 # Installing `bun-cli`
 
 `bun-cli` ships as a standalone binary (no Bun/Node runtime required) to every major channel.
-Pick the one that fits your platform. All per-instance values below (binary name, Gemfury
-account `atomicloud`, tap `AtomiCloud/homebrew-tap`) come from the single config surface in
-`src/config/cli-config.ts`.
+Pick the one that fits your platform. It publishes via the Gemfury account `atomicloud` and the
+Homebrew tap `AtomiCloud/homebrew-tap`.
 
 > **macOS caveat — unsigned binaries.** The binaries are not code-signed. On macOS, Gatekeeper
 > quarantines them on first run. Clear the quarantine attribute after install:
@@ -35,17 +34,6 @@ EOF
 sudo dnf install bun-cli
 ```
 
-## Alpine (apk, via Gemfury — musl build)
-
-```bash
-echo "https://apk.fury.io/atomicloud/" >> /etc/apk/repositories
-apk add --allow-untrusted bun-cli
-```
-
-> The musl binary links `libstdc++`; the apk package declares it as a dependency, so
-> `apk add` pulls it automatically. If you run a raw binary on stock Alpine instead, add it
-> yourself: `apk add libstdc++`.
-
 ## Homebrew (macOS)
 
 ```bash
@@ -76,8 +64,8 @@ nix run github:AtomiCloud/diene.bun-cli#bun-cli -- --help
 
 ## GitHub release (one-line installer)
 
-Downloads the right archive for your OS/arch (glibc or musl), verifies the checksum, and
-installs to `~/.local/bin` (override with `BIN_DIR`):
+Downloads the right archive for your OS/arch, verifies the checksum, and installs to
+`~/.local/bin` (override with `BIN_DIR`):
 
 ```bash
 curl -fsSL https://github.com/AtomiCloud/diene.bun-cli/releases/latest/download/install.sh | bash
@@ -85,8 +73,7 @@ curl -fsSL https://github.com/AtomiCloud/diene.bun-cli/releases/latest/download/
 
 Or grab a specific archive manually from the
 [releases page](https://github.com/AtomiCloud/diene.bun-cli/releases) — `bun-cli_<os>_<arch>.tar.gz`
-(glibc) or `bun-cli_linux_<arch>_musl.tar.gz` (musl) — verify it against `checksums.txt`, and
-extract the `bun-cli` binary onto your `PATH`.
+— verify it against `checksums.txt`, and extract the `bun-cli` binary onto your `PATH`.
 
 ## Verify
 

@@ -10,23 +10,12 @@ on:
         description: JSON array of runner labels for this target
         required: true
         type: string
-      alpine_image:
-        description: When set, run the binary inside this Alpine image (proves the musl build runs on Alpine)
-        required: false
-        type: string
-        default: ''
-      platform:
-        description: Docker platform for the Alpine run (e.g. linux/amd64, linux/arm64)
-        required: false
-        type: string
-        default: ''
 jobs:
   smoke:
     name: Smoke
     runs-on: ${{ fromJSON(inputs.runs_on) }}
     steps:
-      # This job only reads repo content + the downloaded artifact and never pushes, so it has no
-      # need for a persisted git token on the checkout.
+      # Read-only job (repo content + downloaded artifact), so no persisted git token is needed.
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -35,27 +24,9 @@ jobs:
         with:
           name: cli-binaries
           path: dist/bin
-      # Native rows (glibc linux + darwin) run the standalone binary directly. The darwin
-      # unquarantine is handled inside smoke.sh as a tolerant no-op.
-      # Inputs are routed through env: (not interpolated into the run script text) so a caller's
-      # input can never be expanded into shell source — defends against template injection.
-      - name: Smoke (native)
-        if: inputs.alpine_image == ''
+      # Run the standalone binary directly. `binary` is routed through env: (not interpolated into
+      # the run script text) so a caller input can never be expanded into shell source.
+      - name: Smoke
         env:
           BINARY: ${{ inputs.binary }}
         run: ./scripts/release/smoke.sh "dist/bin/${BINARY}"
-      # musl rows run the binary inside a stock Alpine image (FR5). The Bun musl build links
-      # libstdc++/libgcc, so libstdc++ is added (the apk package declares this dependency too);
-      # bash is added only as the test harness. The musl CLI binary is what is proven on Alpine.
-      # BINARY is passed into the container via -e and expanded by the container's shell (kept in
-      # single quotes here), so neither the runner nor the container treats it as script text.
-      - name: Smoke (alpine)
-        if: inputs.alpine_image != ''
-        env:
-          BINARY: ${{ inputs.binary }}
-          PLATFORM: ${{ inputs.platform }}
-          ALPINE_IMAGE: ${{ inputs.alpine_image }}
-        run: |
-          docker run --rm -e BINARY --platform "${PLATFORM}" \
-            -v "$PWD:/work" -w /work "${ALPINE_IMAGE}" \
-            sh -c 'apk add --no-cache bash libstdc++ >/dev/null 2>&1 && bash ./scripts/release/smoke.sh "dist/bin/${BINARY}"'

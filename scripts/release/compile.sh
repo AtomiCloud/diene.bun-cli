@@ -1,36 +1,34 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Cross-compile the standalone CLI binary for every supported target (FR4).
-#
-# The target list is read from the single config surface (src/config/cli-config.ts) via
-# scripts/config/print-config.ts, so there is exactly one source of truth. Each artifact is
-# emitted into a stable dist/bin/ layout that the smoke matrix and the GoReleaser shim consume.
+# Cross-compile the standalone CLI binary for every supported target. Entry + binary name come
+# from package.json .bin; the three glibc targets are an inline (bunTarget, artifact) list.
+die() {
+  echo "❌ $1" >&2
+  exit 1
+}
 
-# Install dependencies first (matches scripts/ci/build.sh|test.sh|pre-commit.sh): the compile job
-# runs on a fresh runner with no node_modules, and `bun build --compile` must resolve the CLI's
-# runtime deps (commander/chalk/inquirer/ioredis). Idempotent + fast when already installed.
+# `bun build --compile` needs the runtime deps installed (fresh CI runner has none).
 ./scripts/ci/setup.sh
 
-ENTRY="bin/bun-cli.ts"
-OUTDIR="${COMPILE_OUTDIR:-dist/bin}"
+ENTRY="$(jq -r '.bin | to_entries[0].value' package.json)"
+[ -n "${ENTRY}" ] && [ "${ENTRY}" != "null" ] || die "no .bin entry in package.json"
 
+OUTDIR="${COMPILE_OUTDIR:-dist/bin}"
 mkdir -p "${OUTDIR}"
 
-config="$(bun run scripts/config/print-config.ts)"
+# bunTarget<TAB>artifact — x64 uses the -baseline build (no AVX2) so it runs under QEMU too.
+targets="bun-linux-x64-baseline	bun-cli-linux-x64-baseline
+bun-linux-arm64	bun-cli-linux-arm64
+bun-darwin-arm64	bun-cli-darwin-arm64"
 
 count=0
 while IFS=$'\t' read -r target artifact; do
-  [[ -n ${target} ]] || continue
+  [ -n "${target}" ] || continue
   echo "🔨 compiling ${target} -> ${OUTDIR}/${artifact}"
   bun build "./${ENTRY}" --compile --target="${target}" --outfile "${OUTDIR}/${artifact}"
   count=$((count + 1))
-done < <(printf '%s\n' "${config}" | jq -r '.compileTargets[] | [.bunTarget, .artifact] | @tsv')
-
-[[ ${count} -gt 0 ]] || {
-  echo "❌ no targets compiled — check compileTargets in the config surface" >&2
-  exit 1
-}
+done <<<"${targets}"
 
 echo "✅ compiled ${count} target(s) into ${OUTDIR}"
 ls -la "${OUTDIR}"

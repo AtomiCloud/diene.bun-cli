@@ -4,11 +4,10 @@ set -euo pipefail
 # One-line installer served from the GitHub release (FR7/FR10):
 #   curl -fsSL https://github.com/AtomiCloud/diene.bun-cli/releases/latest/download/install.sh | bash
 #
-# Detects os/arch (and glibc vs musl), downloads the matching archive + checksums.txt from the
-# release, verifies the checksum, and installs the binary to BIN_DIR (default: ~/.local/bin).
+# Detects os/arch, downloads the matching archive + checksums.txt from the release, verifies the
+# checksum, and installs the binary to BIN_DIR (default: ~/.local/bin).
 #
-# These identity values mirror src/config/cli-config.ts; this script is standalone (no Bun at
-# install time) so it carries its own copy. Keep them in sync with the config surface.
+# Standalone (no Bun at install time), so it carries its own copy of the repo/binary identity.
 REPO="AtomiCloud/diene.bun-cli"
 BINARY="bun-cli"
 
@@ -33,13 +32,7 @@ aarch64 | arm64) arch="arm64" ;;
   ;;
 esac
 
-# musl suffix only applies on Linux libcs that are musl (e.g. Alpine).
-suffix=""
-if [[ ${os} == "linux" ]] && (ldd --version 2>&1 | grep -qi musl || [[ -f /etc/alpine-release ]]); then
-  suffix="_musl"
-fi
-
-archive="${BINARY}_${os}_${arch}${suffix}.tar.gz"
+archive="${BINARY}_${os}_${arch}.tar.gz"
 
 if [[ ${VERSION} == "latest" ]]; then
   base="https://github.com/${REPO}/releases/latest/download"
@@ -80,6 +73,3 @@ install -m 0755 "${tmp}/${BINARY}" "${BIN_DIR}/${BINARY}"
 
 echo "✅ installed ${BINARY} to ${BIN_DIR}/${BINARY}"
 echo "📝 ensure ${BIN_DIR} is on your PATH."
-if [[ -n ${suffix} ]]; then
-  echo "📝 note: the musl build needs libstdc++ — on Alpine run 'apk add libstdc++'."
-fi

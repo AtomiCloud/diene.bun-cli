@@ -48,7 +48,7 @@ Runs when a new version tag is pushed. Handles deployment operations.
 ### Artifact Publishing Model (Docker & CLI binaries)
 
 This repo is a **CLI baseline** — it publishes a Docker image and standalone CLI binaries
-(deb/rpm/apk/brew/GitHub release/Nix). Helm has been dropped (a CLI is not a deployed service),
+(deb/rpm/brew/GitHub release/Nix). Helm has been dropped (a CLI is not a deployed service),
 so there is no chart, `⚡reusable-helm.yaml`, or `scripts/ci/helm.sh`.
 
 | Trigger          | When                       | What happens                                                                                         |
@@ -62,9 +62,8 @@ Key properties:
   binary pipeline lives in `scripts/release/compile.sh` (cross-compile) + `scripts/release/smoke.sh`
   (`⚡reusable-compile.yaml` / `⚡reusable-smoke.yaml`), and `scripts/release/publish.sh` packages
   and publishes on the release tag.
-- Release ownership (FR8): **semantic-release is the sole creator of the git tag and the GitHub
-  release**; GoReleaser runs with `release.disable: true` and `scripts/release/github-assets.sh`
-  uploads the archives/checksums/installer onto that one release.
+- Release ownership: **semantic-release owns the version, tag, and changelog**; GoReleaser then
+  creates the GitHub release with the archives/checksums and publishes the Homebrew cask.
 - Setup uses the shared AtomiCloud actions — `AtomiCloud/actions.setup-docker` for Docker and
   `AtomiCloud/actions.setup-nix` for the Nix-backed jobs. Do **not** call the underlying
   nscloud/buildx actions directly.
@@ -130,7 +129,7 @@ Setup Nix -> Setup Caches -> nix develop -c ./scripts/ci/script.sh
 Reusable workflows declare an input **only if they use it**. Cache keys no longer depend on
 platform/service, so `atomi_platform` / `atomi_service` are **not** required inputs — pre-commit,
 compile, and release take no inputs, `⚡reusable-docker.yaml` takes `image_name`/`dockerfile`/…, and
-`⚡reusable-smoke.yaml` takes `binary`/`runs_on`/`alpine_image`/`platform`.
+`⚡reusable-smoke.yaml` takes `binary`/`runs_on`.
 
 ### Example: Reusable Workflow Structure
 

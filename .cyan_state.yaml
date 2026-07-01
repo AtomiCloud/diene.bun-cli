@@ -154,11 +154,10 @@ atomi/workspace:
     - scripts/ci/pre-commit.sh
     - scripts/ci/release.sh
     - scripts/ci/setup.sh
-    - scripts/config/print-config.ts
     - scripts/local/secrets.sh
+    - scripts/release/backup-changelog.sh
     - scripts/release/compile.sh
     - scripts/release/fury.sh
-    - scripts/release/github-assets.sh
     - scripts/release/goreleaser-shim.sh
     - scripts/release/install.sh
     - scripts/release/local-bin.sh
@@ -290,11 +289,10 @@ managed_files:
   - scripts/ci/pre-commit.sh
   - scripts/ci/release.sh
   - scripts/ci/setup.sh
-  - scripts/config/print-config.ts
   - scripts/local/secrets.sh
+  - scripts/release/backup-changelog.sh
   - scripts/release/compile.sh
   - scripts/release/fury.sh
-  - scripts/release/github-assets.sh
   - scripts/release/goreleaser-shim.sh
   - scripts/release/install.sh
   - scripts/release/local-bin.sh
