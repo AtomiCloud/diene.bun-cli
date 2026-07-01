@@ -17,7 +17,7 @@ packages=(dist/*.deb dist/*.rpm)
 
 for pkg in "${packages[@]}"; do
   echo "📤 pushing ${pkg} -> ${endpoint}"
-  curl -fsS -F package=@"${pkg}" "https://${FURY_TOKEN}@${endpoint}/"
+  curl -fsS --connect-timeout 30 --max-time 600 -F package=@"${pkg}" "https://${FURY_TOKEN}@${endpoint}/"
 done
 
 echo "✅ pushed ${#packages[@]} package(s) to Gemfury"
