@@ -3,5 +3,6 @@ root = "tests/unit"
 coverageReporter = ["text", "lcov"]
 coverageDir = "coverage/unit"
 coverageSkipTestFiles = true
-# coverageSkipTestFiles only skips *.test.ts — keep helper fakes out of the report too.
-coveragePathIgnorePatterns = ["tests/**"]
+# Unit coverage measures the domain (100% goal) + config; adapters are covered by their own
+# tiers (data -> integration, api journeys -> SIT) and helper fakes are not sources.
+coveragePathIgnorePatterns = ["tests/**", "src/adapters/**"]
