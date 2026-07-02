@@ -2,7 +2,7 @@ import type { Command } from 'commander';
 import { NamespacedKeyValidationError } from '../../../lib/kv/slug';
 import type { KvService } from '../../../lib/kv/service';
 import type { ICliIo } from '../../terminal/console-io';
-import { EXIT_ERROR, EXIT_OK } from './exit-codes';
+import { EXIT_ERROR, EXIT_OK } from '../../cli/exit-codes';
 import { MAX_TTL_SECONDS, TtlSchema } from './validator';
 
 /** `set <namespace> <key> <value> [--ttl <seconds>]` — validates the req and routes to KvService. */

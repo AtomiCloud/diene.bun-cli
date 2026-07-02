@@ -1,7 +1,7 @@
 import { describe, it } from 'bun:test';
 import should from 'should';
 import { DoctorService } from '../../../src/lib/kv/doctor-service';
-import { FakeKeyValueStore, FakeShell } from './fakes';
+import { FakeKeyValueStore, FakeShell } from '../../helpers/fakes';
 
 describe('DoctorService', () => {
   describe('platform', () => {

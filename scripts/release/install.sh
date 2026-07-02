@@ -28,10 +28,7 @@ aarch64 | arm64) arch="arm64" ;;
 esac
 
 # Only darwin arm64 ships (no Intel mac) — fail clearly instead of 404ing on a missing archive.
-[[ ${os} == "darwin" && ${arch} == "amd64" ]] && {
-  echo "❌ Intel macOS is not supported (arm64 only)" >&2
-  exit 1
-}
+[[ ${os} == "darwin" && ${arch} == "amd64" ]] && echo "❌ Intel macOS is not supported (arm64 only)" >&2 && exit 1
 
 archive="${BINARY}_${os}_${arch}.tar.gz"
 
@@ -52,19 +49,15 @@ echo "🔐 verifying checksum ..."
 (
   cd "${tmp}"
   expected="$(grep " ${archive}\$" checksums.txt | awk '{print $1}' || true)"
-  [[ -n ${expected} ]] || {
-    echo "❌ no checksum entry for ${archive}" >&2
-    exit 1
-  }
+  [[ -z ${expected} ]] && echo "❌ no checksum entry for ${archive}" >&2 && exit 1
   if command -v sha256sum >/dev/null 2>&1; then
     printf '%s  %s\n' "${expected}" "${archive}" | sha256sum -c -
   else
     actual="$(shasum -a 256 "${archive}" | awk '{print $1}')"
-    [[ ${actual} == "${expected}" ]] || {
-      echo "❌ checksum mismatch" >&2
-      exit 1
-    }
+    [[ ${actual} != "${expected}" ]] && echo "❌ checksum mismatch" >&2 && exit 1
   fi
+  # The success echo also keeps the guard off the subshell's final line (a false guard returns 1).
+  echo "✅ checksum verified"
 )
 
 echo "📦 installing to ${BIN_DIR} ..."
@@ -72,5 +65,5 @@ mkdir -p "${BIN_DIR}"
 tar -xzf "${tmp}/${archive}" -C "${tmp}"
 install -m 0755 "${tmp}/${BINARY}" "${BIN_DIR}/${BINARY}"
 
-echo "✅ installed ${BINARY} to ${BIN_DIR}/${BINARY}"
 echo "📝 ensure ${BIN_DIR} is on your PATH."
+echo "✅ installed ${BINARY} to ${BIN_DIR}/${BINARY}"

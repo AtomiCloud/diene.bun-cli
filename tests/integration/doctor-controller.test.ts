@@ -1,9 +1,9 @@
 import { describe, it } from 'bun:test';
 import should from 'should';
-import { DoctorController } from '../../../src/adapters/kv/api/doctor-controller';
-import { EXIT_ERROR, EXIT_OK } from '../../../src/adapters/kv/api/exit-codes';
-import { DoctorService } from '../../../src/lib/kv/doctor-service';
-import { FakeKeyValueStore, FakeShell, captureIo, captureSpinner } from './fakes';
+import { DoctorController } from '../../src/adapters/kv/api/doctor-controller';
+import { EXIT_ERROR, EXIT_OK } from '../../src/adapters/cli/exit-codes';
+import { DoctorService } from '../../src/lib/kv/doctor-service';
+import { FakeKeyValueStore, FakeShell, captureIo, captureSpinner } from '../helpers/fakes';
 
 describe('DoctorController', () => {
   describe('handle', () => {

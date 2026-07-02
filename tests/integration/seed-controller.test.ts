@@ -1,9 +1,9 @@
 import { describe, it } from 'bun:test';
 import should from 'should';
-import { SeedController } from '../../../src/adapters/kv/api/seed-controller';
-import { EXIT_ERROR, EXIT_OK } from '../../../src/adapters/kv/api/exit-codes';
-import { KvService } from '../../../src/lib/kv/service';
-import { FakeKeyValueStore, captureIo, captureProgress } from './fakes';
+import { SeedController } from '../../src/adapters/kv/api/seed-controller';
+import { EXIT_ERROR, EXIT_OK } from '../../src/adapters/cli/exit-codes';
+import { KvService } from '../../src/lib/kv/service';
+import { FakeKeyValueStore, captureIo, captureProgress } from '../helpers/fakes';
 
 describe('SeedController', () => {
   describe('handle', () => {

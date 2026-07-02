@@ -7,3 +7,5 @@ if [ -f Changelog.md ]; then
 else
   touch Changelog.old.md
 fi
+
+echo "✅ Changelog baseline saved to Changelog.old.md"

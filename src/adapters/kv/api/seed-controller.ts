@@ -3,7 +3,7 @@ import type { IProgressReporter } from '../../../lib/kv/interfaces';
 import { NamespacedKeyValidationError } from '../../../lib/kv/slug';
 import type { KvService } from '../../../lib/kv/service';
 import type { ICliIo } from '../../terminal/console-io';
-import { EXIT_ERROR, EXIT_OK } from './exit-codes';
+import { EXIT_ERROR, EXIT_OK } from '../../cli/exit-codes';
 import { CountSchema, MAX_SEED_COUNT } from './validator';
 
 /** `seed <namespace> <count>` — validates the req and routes to KvService.seed. */

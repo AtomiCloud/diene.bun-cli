@@ -1,34 +1,16 @@
 import { afterAll, beforeAll, describe, it } from 'bun:test';
 import should from 'should';
 import { GenericContainer, type StartedTestContainer, Wait } from 'testcontainers';
+import { BinaryCliDriver, type CliDriver, type CliResult, InProcessCliDriver } from './driver';
 
-// SIT (see docs/developer/standard/testing): black-box journeys through the COMPILED binary
-// against a real Redis — every command is an invariant here. No coverage (separate process).
-const os = process.platform === 'darwin' ? 'darwin' : 'linux';
-const arch = process.arch === 'arm64' ? 'arm64' : 'x64-baseline';
-const bin = process.env.CLI_BIN ?? `dist/bin/bun-cli-${os}-${arch}`;
-
-interface CliResult {
-  readonly code: number;
-  readonly out: string;
-  readonly err: string;
-}
+// SIT journeys against a real Redis; SIT_DRIVER picks the compiled binary (default, no coverage) or in-process (coverage).
+const useInProcess = process.env.SIT_DRIVER === 'inprocess';
 
 let container: StartedTestContainer | undefined;
-let redisEnv: Record<string, string> = {};
+let driver: CliDriver;
 
-async function cli(args: string[], env: Record<string, string> = redisEnv): Promise<CliResult> {
-  const proc = Bun.spawn([bin, ...args], {
-    env: { ...process.env, NO_COLOR: '1', ...env },
-    stdout: 'pipe',
-    stderr: 'pipe',
-  });
-  const [out, err, code] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-    proc.exited,
-  ]);
-  return { code, out, err };
+async function cli(args: string[], env: Record<string, string> = {}): Promise<CliResult> {
+  return driver.run(args, env);
 }
 
 beforeAll(async () => {
@@ -36,14 +18,23 @@ beforeAll(async () => {
     .withExposedPorts(6379)
     .withWaitStrategy(Wait.forLogMessage(/Ready to accept connections/))
     .start();
-  redisEnv = { REDIS_HOST: container.getHost(), REDIS_PORT: String(container.getMappedPort(6379)) };
+  const host = container.getHost();
+  const port = container.getMappedPort(6379);
+  if (useInProcess) {
+    driver = new InProcessCliDriver(host, port);
+  } else {
+    const os = process.platform === 'darwin' ? 'darwin' : 'linux';
+    const arch = process.arch === 'arm64' ? 'arm64' : 'x64-baseline';
+    const bin = process.env.CLI_BIN ?? `dist/bin/bun-cli-${os}-${arch}`;
+    driver = new BinaryCliDriver(bin, { REDIS_HOST: host, REDIS_PORT: String(port) });
+  }
 }, 120_000);
 
 afterAll(async () => {
   await container?.stop();
 }, 120_000);
 
-describe('bun-cli (SIT, compiled binary)', () => {
+describe(`bun-cli (SIT, ${useInProcess ? 'in-process' : 'compiled binary'})`, () => {
   it('prints a semver with --version', async () => {
     // Act
     const actual = await cli(['--version']);

@@ -17,4 +17,4 @@ jobs:
           name: cli-binaries
           path: dist/bin
       - name: Run SIT
-        run: nix develop .#ci -c ./scripts/ci/test-sit.sh
+        run: nix develop .#ci -c ./scripts/ci/test.sh sit

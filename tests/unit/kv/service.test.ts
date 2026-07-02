@@ -1,7 +1,7 @@
 import { describe, it } from 'bun:test';
 import should from 'should';
 import { KvService } from '../../../src/lib/kv/service';
-import { FakeKeyValueStore, captureProgress } from './fakes';
+import { FakeKeyValueStore, captureProgress } from '../../helpers/fakes';
 
 describe('KvService', () => {
   describe('setValue', () => {

@@ -5,26 +5,30 @@ set -euo pipefail
 ./scripts/ci/setup.sh
 
 ENTRY="$(jq -r '.bin | to_entries[0].value' package.json)"
-[ -n "${ENTRY}" ] && [ "${ENTRY}" != "null" ] || {
-  echo "❌ no .bin entry in package.json" >&2
-  exit 1
-}
+[ -z "${ENTRY}" ] && echo "❌ no .bin entry in package.json" >&2 && exit 1
+[ "${ENTRY}" = "null" ] && echo "❌ no .bin entry in package.json" >&2 && exit 1
+
+# Artifact prefix is the .bin key (the CLI's own name) — never hardcode the sample name.
+PREFIX="$(jq -r '.bin | to_entries[0].key' package.json)"
+[ -z "${PREFIX}" ] && echo "❌ no .bin entry in package.json" >&2 && exit 1
+[ "${PREFIX}" = "null" ] && echo "❌ no .bin entry in package.json" >&2 && exit 1
 
 OUTDIR="${COMPILE_OUTDIR:-dist/bin}"
 mkdir -p "${OUTDIR}"
 
-# bunTarget<TAB>artifact — x64 uses the -baseline build (no AVX2) so it runs under QEMU too.
-targets="bun-linux-x64-baseline	bun-cli-linux-x64-baseline
-bun-linux-arm64	bun-cli-linux-arm64
-bun-darwin-arm64	bun-cli-darwin-arm64"
+# bunTarget<TAB>artifactSuffix — x64 uses the -baseline build (no AVX2) so it runs under QEMU too.
+targets="bun-linux-x64-baseline	linux-x64-baseline
+bun-linux-arm64	linux-arm64
+bun-darwin-arm64	darwin-arm64"
 
 count=0
-while IFS=$'\t' read -r target artifact; do
-  [ -n "${target}" ] || continue
+while IFS=$'\t' read -r target suffix; do
+  [ -z "${target}" ] && continue
+  artifact="${PREFIX}-${suffix}"
   echo "🔨 compiling ${target} -> ${OUTDIR}/${artifact}"
   bun build "./${ENTRY}" --compile --target="${target}" --outfile "${OUTDIR}/${artifact}"
   count=$((count + 1))
 done <<<"${targets}"
 
-echo "✅ compiled ${count} target(s) into ${OUTDIR}"
 ls -la "${OUTDIR}"
+echo "✅ compiled ${count} target(s) into ${OUTDIR}"

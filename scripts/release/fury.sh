@@ -2,19 +2,13 @@
 set -euo pipefail
 
 # Push the built Linux packages (deb/rpm) to Gemfury. Requires FURY_TOKEN. Runs against dist/.
-[ -n "${FURY_TOKEN:-}" ] || {
-  echo "❌ 'FURY_TOKEN' env var not set" >&2
-  exit 1
-}
+[ -z "${FURY_TOKEN:-}" ] && echo "❌ 'FURY_TOKEN' env var not set" >&2 && exit 1
 
 endpoint="push.fury.io/atomicloud"
 
 shopt -s nullglob
 packages=(dist/*.deb dist/*.rpm)
-[ "${#packages[@]}" -gt 0 ] || {
-  echo "❌ no deb/rpm packages found in dist/" >&2
-  exit 1
-}
+[ "${#packages[@]}" -eq 0 ] && echo "❌ no deb/rpm packages found in dist/" >&2 && exit 1
 
 for pkg in "${packages[@]}"; do
   echo "📤 pushing ${pkg} -> ${endpoint}"

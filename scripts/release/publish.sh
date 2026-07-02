@@ -18,18 +18,9 @@ if [ "${SNAPSHOT}" -eq 1 ]; then
   exit 0
 fi
 
-[ -n "${SCOOP_BREW_TOKEN:-}" ] || {
-  echo "❌ 'SCOOP_BREW_TOKEN' env var not set" >&2
-  exit 1
-}
-[ -n "${FURY_TOKEN:-}" ] || {
-  echo "❌ 'FURY_TOKEN' env var not set" >&2
-  exit 1
-}
-[ -n "${GITHUB_TOKEN:-}" ] || {
-  echo "❌ 'GITHUB_TOKEN' env var not set" >&2
-  exit 1
-}
+[ -z "${SCOOP_BREW_TOKEN:-}" ] && echo "❌ 'SCOOP_BREW_TOKEN' env var not set" >&2 && exit 1
+[ -z "${FURY_TOKEN:-}" ] && echo "❌ 'FURY_TOKEN' env var not set" >&2 && exit 1
+[ -z "${GITHUB_TOKEN:-}" ] && echo "❌ 'GITHUB_TOKEN' env var not set" >&2 && exit 1
 
 # Release notes = this version's changelog section (diff of Changelog.md vs Changelog.old.md).
 echo "⚙️ Generating changelog diff ..."
@@ -40,7 +31,7 @@ else
   diff --new-line-format='' --unchanged-line-format='' --old-line-format='%L' Changelog.md Changelog.old.md >IncrementalChangelog.md
   ec="$?"
   set -e
-  [ "${ec}" -gt 1 ] && die "changelog diff failed"
+  [ "${ec}" -gt 1 ] && echo "❌ changelog diff failed" >&2 && exit 1
 fi
 
 echo "📦 GoReleaser release (creates the GitHub release, publishes the cask) ..."

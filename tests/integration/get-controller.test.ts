@@ -1,9 +1,9 @@
 import { describe, it } from 'bun:test';
 import should from 'should';
-import { GetController } from '../../../src/adapters/kv/api/get-controller';
-import { EXIT_ERROR, EXIT_OK } from '../../../src/adapters/kv/api/exit-codes';
-import { KvService } from '../../../src/lib/kv/service';
-import { FakeKeyValueStore, FakePrompt, captureIo } from './fakes';
+import { GetController } from '../../src/adapters/kv/api/get-controller';
+import { EXIT_ERROR, EXIT_OK } from '../../src/adapters/cli/exit-codes';
+import { KvService } from '../../src/lib/kv/service';
+import { FakeKeyValueStore, FakePrompt, captureIo } from '../helpers/fakes';
 
 describe('GetController', () => {
   describe('handle', () => {

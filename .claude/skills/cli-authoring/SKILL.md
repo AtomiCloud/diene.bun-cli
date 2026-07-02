@@ -8,10 +8,12 @@ description: Author, build, and distribute the bun-cli CLI baseline. Use when ad
 This template is a working CLI baseline over the AtomiCloud Redis key-value library. It covers
 three areas end to end: **framework → build → distribute**.
 
-`src/config/cli-config.ts` holds the CLI's **runtime** values (binary name, version, description,
-Redis defaults). Publish/build metadata lives where it is used: compile targets in
-`scripts/release/compile.sh`, the Gemfury endpoint in `scripts/release/fury.sh`, packaging in
-`.goreleaser.yaml`, the image in `infra/Dockerfile`, and the standalone `scripts/release/install.sh`.
+The CLI's **runtime** identity (binary name, description, Redis defaults) lives as constants at
+the top of the composition root (`bin/bun-cli.ts`); the version is read from `package.json`.
+Publish/build metadata lives where it is used: the artifact prefix and entry are derived from
+`package.json` `.bin` in `scripts/release/compile.sh` / `goreleaser-shim.sh` / `smoke.sh`,
+the Gemfury endpoint is in `scripts/release/fury.sh`, packaging in `.goreleaser.yaml`, the image
+in `infra/Dockerfile`, and the standalone `scripts/release/install.sh`.
 
 ## 1. Framework — a CLI is the three-layer architecture
 
@@ -20,23 +22,29 @@ code`). Commander is imperative, so its imperativeness is quarantined in exactly
 composition root and each controller's `register()`. Everything is a class with constructor
 injection (stateless-oop-di) — no free-function handlers, no ad-hoc deps objects.
 
-- `bin/bun-cli.ts` — **the composition root ("big bang")**. `main()` constructs the ENTIRE world
-  once — adapters → domain services → controllers → commander program — then `parseAsync`. The
-  store is opened and closed here, not per command. This is the only place `new` is called.
+- `bin/bun-cli.ts` — **the composition root ("big bang")**. `execute()` constructs the ENTIRE
+  world once — `createProgram()` (scaffold skeleton: identity, `--help`, `--version`) +
+  `buildWorld()` (adapters) + `registerDomain()` (domain services → controllers → routes) — then
+  `parseAsync`. The store is opened and closed here, not per command. This is the only place
+  `new` is called. Everything domain-specific sits inside the clearly marked `DOMAIN WIRING`
+  blocks — the only scaffold↔domain seam; the SIT in-process driver imports the exported factory
+  (`import.meta.main` guards the executable behavior).
 - `src/lib/kv/` — **domain layer (zero IO)**: `slug.ts` (pure logic + domain errors),
   `interfaces.ts` (the ports the domain defines: `IKeyValueStore`, `IProgressReporter`,
   `IShell`), `service.ts` (`KvService`) and `doctor-service.ts` — stateless classes over the
   ports.
 - `src/adapters/kv/api/` — **controllers**: one class per command (`SetController`, …). A
   controller does ONLY guardrail work: zod-validate the raw args (`validator.ts`), route to the
-  pre-built service, map domain errors → `io` messages + exit code (`exit-codes.ts`).
-  `register(program)` declares the commander route whose action just calls `this.handle(...)`.
+  pre-built service, map domain errors → `io` messages + exit code (the generic transport
+  constants in `src/adapters/cli/exit-codes.ts`). `register(program)` declares the commander
+  route whose action just calls `this.handle(...)`.
 - `src/adapters/kv/data/` — `RedisKeyValueStore` implements the domain's `IKeyValueStore`.
 - `src/adapters/terminal/` — presentation adapters, all classes: `ConsoleIo` (chalk),
   `OraSpinner` (ora), `CliProgressBar` (cli-progress), `InquirerPrompt` (inquirer).
-- `src/adapters/system/` — `BunShell` implements `IShell` via Bun Shell (`$`, zero-dependency).
-- `src/config/cli-config.ts` — the CLI runtime config (binary name, version, Redis defaults),
-  read only by the composition root.
+- `src/adapters/system/` — `BunShell` implements the scaffold's `IShellRunner` via Bun Shell
+  (`$`, zero-dependency). Scaffold adapters (`terminal/`, `system/`, `cli/`) never import domain
+  code — they declare their own structurally identical ports and the composition root bridges
+  them to the domain's ports via TypeScript structural typing.
 
 ### To add a command `foo`
 
@@ -47,14 +55,18 @@ injection (stateless-oop-di) — no free-function handlers, no ad-hoc deps objec
    ports in its constructor, a `register(program)` that declares the route, and a public
    `handle(...): Promise<number>` that validates (zod in `validator.ts`), routes, and maps
    errors to `EXIT_OK`/`EXIT_ERROR`.
-3. Wire it in `bin/bun-cli.ts`'s `main()`: `new FooController(service, io).register(program);`.
-4. Add `tests/unit/kv/foo-controller.test.ts` using the fakes in `tests/unit/kv/fakes.ts` —
-   assert store calls, exit codes, and rendered output for success / validation-error /
-   unreachable-backend paths. No real Redis; `register()` is covered by SIT, not unit tests.
-5. Run `pls unit`, then `pls sit` for the black-box journey.
+3. Wire it in `bin/bun-cli.ts`'s `registerDomain()` (inside the marked DOMAIN WIRING block):
+   `new FooController(service, io).register(program);`.
+4. Add `tests/integration/foo-controller.test.ts` using the fakes in `tests/helpers/fakes.ts` —
+   controllers are adapters, so they are integration-tier. Drive `handle()` and assert store
+   calls, exit codes, and rendered output for success / validation-error / unreachable-backend
+   paths. No real Redis; `register()` is covered by SIT, not the controller tests. Pure domain
+   logic gets `tests/unit/` cases.
+5. Run `pls test:unit` + `pls test:int`, then `pls test:sit` for the black-box journey.
 
 Interactive prompts go through the injected `IPrompt` and are guarded by the `interactive`
-(TTY) flag resolved in main — never prompt off a TTY, fail fast instead (see `GetController`).
+(TTY) flag resolved in `buildWorld()` — never prompt off a TTY, fail fast instead (see
+`GetController`).
 
 Try it locally: `pls up` (dependencies) → `pls run -- set <ns> <key> <value>` (dev mode) or
 `pls compile && pls run:bin -- doctor` (compiled binary) → `pls down`.
@@ -75,9 +87,12 @@ The x64 target uses the `-baseline` Bun build (no AVX2 requirement) so it runs o
 native x64 host.
 
 - `pls compile:smoke -- dist/bin/<binary>` runs `--version`/`--help` and asserts the output.
-- `pls sit` (→ `tests/sit/cli.sit.test.ts`) is the black-box tier per the testing standard:
+- `pls test:sit` (→ `tests/sit/cli.sit.test.ts`) is the black-box tier per the testing standard:
   every command journeyed through the compiled binary against a real Redis (regression
   invariants, no coverage). CI runs it after compile via `⚡reusable-sit.yaml`.
+  `pls test:sit:coverage` replays the SAME journeys through the in-process driver
+  (`SIT_DRIVER=inprocess`, `tests/sit/driver.ts`) to produce full-system coverage in
+  `coverage/sit/`.
 - CI: `⚡reusable-compile.yaml` builds once on Linux and uploads the artifact; the `smoke` matrix
   in `ci.yaml` downloads it and runs `scripts/release/smoke.sh` per target.
 - `nix build .#bun-cli` builds the binary reproducibly via Nix (deps vendored as a fixed-output

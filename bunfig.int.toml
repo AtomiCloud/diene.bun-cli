@@ -4,5 +4,5 @@ timeout = 120000
 coverageReporter = ["text", "lcov"]
 coverageDir = "coverage/int"
 coverageSkipTestFiles = true
-# Integration coverage measures the data adapter only; the rest is covered by the unit suite.
-coveragePathIgnorePatterns = ["src/lib/**", "src/adapters/kv/api/**", "src/adapters/terminal/**", "src/adapters/system/**"]
+# Int ledger = the adapters tier only; the domain is the unit ledger, the glue is not an adapter, tests/** never counts.
+coveragePathIgnorePatterns = ["src/index.ts", "src/lib/**", "tests/**"]

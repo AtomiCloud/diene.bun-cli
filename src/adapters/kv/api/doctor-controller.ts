@@ -2,7 +2,7 @@ import type { Command } from 'commander';
 import type { DoctorService } from '../../../lib/kv/doctor-service';
 import type { ICliIo } from '../../terminal/console-io';
 import type { ISpinner } from '../../terminal/spinner';
-import { EXIT_ERROR, EXIT_OK } from './exit-codes';
+import { EXIT_ERROR, EXIT_OK } from '../../cli/exit-codes';
 
 /** `doctor` — routes to DoctorService and renders spinner/platform feedback. */
 export class DoctorController {
