@@ -5,12 +5,6 @@ tasks:
     cmds:
       - ./scripts/release/compile.sh
   smoke:
-    desc: 'Smoke-test a compiled binary (path via --, defaults to the local OS/arch artifact)'
-    vars:
-      # Local-host artifact path, resolved by a helper that detects this host's OS/arch and selects
-      # the matching artifact from the config bridge. Host detection stays out of the Taskfile (per
-      # the Taskfile convention) and no artifact filename is duplicated outside the config surface.
-      LOCAL_BIN:
-        sh: ./scripts/release/local-bin.sh
+    desc: 'Smoke-test a compiled binary (pls compile:smoke -- dist/bin/<binary>)'
     cmds:
-      - ./scripts/release/smoke.sh {{.CLI_ARGS | default .LOCAL_BIN}}
+      - ./scripts/release/smoke.sh {{.CLI_ARGS}}

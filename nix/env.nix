@@ -24,12 +24,9 @@ with packages;
   ];
 
   releaser = [
-    dpkg
-    gh
     git
     go
     goreleaser
-    rpm
     sg
   ];
 

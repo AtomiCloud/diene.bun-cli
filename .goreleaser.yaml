@@ -27,6 +27,11 @@ archives:
 checksum:
   name_template: 'checksums.txt'
 
+release:
+  # install.sh is served from the GitHub release (see INSTALLATION.md's one-line installer).
+  extra_files:
+    - glob: scripts/release/install.sh
+
 nfpms:
   - id: packages
     ids: [bun]
