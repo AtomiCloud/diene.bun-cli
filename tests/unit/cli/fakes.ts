@@ -1,4 +1,5 @@
 import type { IKeyValueStore } from '../../../src/adapters/kv-store';
+import type { ProgressBar, Spinner } from '../../../src/cli/feedback';
 import type { CliIo } from '../../../src/cli/output';
 
 /** Records a single `set` call so tests can assert the composed key, value, and ttl. */
@@ -65,4 +66,50 @@ export function captureIo(): CapturedIo {
       errors.push(message);
     },
   };
+}
+
+/** Records spinner transitions so tests can assert on live feedback. */
+export interface CapturedSpinner extends Spinner {
+  readonly events: string[];
+}
+
+export function captureSpinner(): CapturedSpinner {
+  const events: string[] = [];
+  return {
+    events,
+    start: (text: string): void => {
+      events.push(`start:${text}`);
+    },
+    succeed: (text: string): void => {
+      events.push(`succeed:${text}`);
+    },
+    fail: (text: string): void => {
+      events.push(`fail:${text}`);
+    },
+  };
+}
+
+/** Records progress-bar activity so tests can assert totals and ticks. */
+export interface CapturedProgress extends ProgressBar {
+  readonly totals: number[];
+  ticks: number;
+  stopped: boolean;
+}
+
+export function captureProgress(): CapturedProgress {
+  const bar: CapturedProgress = {
+    totals: [],
+    ticks: 0,
+    stopped: false,
+    start: (total: number): void => {
+      bar.totals.push(total);
+    },
+    tick: (): void => {
+      bar.ticks += 1;
+    },
+    stop: (): void => {
+      bar.stopped = true;
+    },
+  };
+  return bar;
 }

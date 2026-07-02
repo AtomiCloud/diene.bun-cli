@@ -2,8 +2,11 @@ import { Command } from 'commander';
 import type { IKeyValueStore, RedisConnection } from '../adapters/kv-store';
 import { RedisKeyValueStore } from '../adapters/redis-kv-store';
 import { cliConfig } from '../config/cli-config';
+import { type ShellFn, registerDoctorCommand, unameShell } from './commands/doctor';
 import { type PromptFn, inquirerPrompt, registerGetCommand } from './commands/get';
+import { registerSeedCommand } from './commands/seed';
 import { registerSetCommand } from './commands/set';
+import { type ProgressBar, type Spinner, cliProgressBar, oraSpinner } from './feedback';
 import { type CliIo, consoleIo } from './output';
 
 /** Composition root — builds the commander program and injects every handler dependency. */
@@ -13,6 +16,9 @@ export interface ProgramDeps {
   readonly io: CliIo;
   readonly prompt: PromptFn;
   readonly interactive: boolean;
+  readonly spinner: () => Spinner;
+  readonly progress: () => ProgressBar;
+  readonly shell: ShellFn;
 }
 
 /** REDIS_HOST/REDIS_PORT env overrides (needed under docker, where 127.0.0.1 is the container). */
@@ -24,13 +30,16 @@ function resolveConnection(): RedisConnection {
   };
 }
 
-/** Real dependencies wired against Redis, the console, and inquirer. */
+/** Real dependencies wired against Redis, the console, inquirer, ora, cli-progress, and Bun Shell. */
 const defaultProgramDeps: ProgramDeps = {
   createStore: (connection: RedisConnection): IKeyValueStore => new RedisKeyValueStore(connection),
   connection: resolveConnection(),
   io: consoleIo,
   prompt: inquirerPrompt,
   interactive: Boolean(process.stdin.isTTY && process.stdout.isTTY),
+  spinner: oraSpinner,
+  progress: cliProgressBar,
+  shell: unameShell,
 };
 
 export function buildProgram(deps: ProgramDeps = defaultProgramDeps): Command {
@@ -50,6 +59,8 @@ export function buildProgram(deps: ProgramDeps = defaultProgramDeps): Command {
     prompt: deps.prompt,
     interactive: deps.interactive,
   });
+  registerSeedCommand(program, { createStore, io: deps.io, progress: deps.progress });
+  registerDoctorCommand(program, { createStore, io: deps.io, spinner: deps.spinner, shell: deps.shell });
 
   return program;
 }

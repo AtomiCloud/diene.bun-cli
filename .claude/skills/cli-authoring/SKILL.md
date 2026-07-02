@@ -26,6 +26,10 @@ The CLI mirrors the repo's three-layer / DI architecture. The tiers:
   commander. Handlers depend on `IKeyValueStore` (logic/storage) and `CliIo` (presentation) —
   never on `console`/`chalk`/Redis directly.
 - `src/cli/output.ts` — the `CliIo` presentation boundary over `chalk` (success/warn/error).
+- `src/cli/feedback.ts` — the live-feedback boundary: `Spinner` (ora) and `ProgressBar`
+  (cli-progress). Shell calls go through Bun Shell (`$` from `bun`, zero-dependency) behind an
+  injected `ShellFn` (see `doctor.ts`). All injected like `CliIo`, so handlers stay testable —
+  fakes in `tests/unit/cli/fakes.ts`; `seed.ts` shows the bar, `doctor.ts` the spinner + shell.
 - `src/config/cli-config.ts` — the CLI runtime config (binary name, version, Redis defaults).
 
 ### To add a command `foo`
