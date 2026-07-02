@@ -50,8 +50,8 @@ Interactive prompts use inquirer through an injected `PromptFn` so they stay tes
 hang in CI — guard them behind the `interactive` (TTY) flag and fail fast with a clear message
 otherwise (see `get.ts`).
 
-Try it locally: `pls redis` (disposable Redis) → `pls cli -- set <ns> <key> <value>` (dev mode) or
-`pls compile && pls cli:bin -- doctor` (compiled binary) → `pls redis:stop`.
+Try it locally: `pls up` (dependencies) → `pls run -- set <ns> <key> <value>` (dev mode) or
+`pls compile && pls run:bin -- doctor` (compiled binary) → `pls down`.
 
 ## 2. Build — standalone binaries
 
