@@ -9,7 +9,9 @@ die() {
 
 version="${1:?Usage: bump.sh <version>}"
 
-sed -i.bak -E "s/\"version\": \"[^\"]+\"/\"version\": \"${version}\"/" package.json
-rm -f package.json.bak
+# `sg release -i npm` mutates package.json (ephemeral plugin installs) — restore before stamping.
+git checkout HEAD -- package.json
+# Version-only edit: bun.lock does not pin the root version, so no lockfile change is needed.
+bun pm pkg set "version=${version}"
 grep -q "\"version\": \"${version}\"" package.json || die "failed to stamp version ${version} into package.json"
 echo "✅ package.json version -> ${version}"
