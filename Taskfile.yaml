@@ -19,7 +19,7 @@ tasks:
   setup:
     desc: Setup the repository
     cmds:
-      - ./scripts/ci/setup.sh
+      - ./scripts/local/setup.sh
       - ./scripts/local/secrets.sh
   clean:
     desc: Remove build, dependency, and coverage artifacts
