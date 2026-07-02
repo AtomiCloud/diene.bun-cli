@@ -3,3 +3,5 @@ root = "tests/unit"
 coverageReporter = ["text", "lcov"]
 coverageDir = "coverage/unit"
 coverageSkipTestFiles = true
+# coverageSkipTestFiles only skips *.test.ts — keep helper fakes out of the report too.
+coveragePathIgnorePatterns = ["tests/**"]
