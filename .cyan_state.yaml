@@ -70,7 +70,7 @@ atomi/workspace:
       answers:
         atomi/helm:
           type: Bool
-          value: false
+          value: true
         atomi/service:
           type: String
           value: bun-base
@@ -95,9 +95,9 @@ atomi/workspace:
       deterministic_states: {}
   files:
     - .claude/skills/ci-cd-workflows/SKILL.md
-    - .claude/skills/cli-authoring/SKILL.md
     - .claude/skills/conventional-commits/SKILL.md
     - .claude/skills/docker-push/SKILL.md
+    - .claude/skills/helm-push/SKILL.md
     - .claude/skills/infisical/SKILL.md
     - .claude/skills/linting/SKILL.md
     - .claude/skills/nix/SKILL.md
@@ -114,26 +114,23 @@ atomi/workspace:
     - .github/workflows/cd.yaml
     - .github/workflows/ci.yaml
     - .github/workflows/release.yaml
-    - .github/workflows/⚡reusable-compile.yaml
     - .github/workflows/⚡reusable-docker.yaml
+    - .github/workflows/⚡reusable-helm.yaml
     - .github/workflows/⚡reusable-precommit.yaml
     - .github/workflows/⚡reusable-release.yaml
-    - .github/workflows/⚡reusable-smoke.yaml
     - .github/workflows/🛡️merge-gatekeeper.yml
     - .gitignore
     - .gitlint
-    - .goreleaser.yaml
     - .prettierrc.yaml
     - CLAUDE.md
-    - INSTALLATION.md
     - README.md
     - Taskfile.yaml
     - atomi_release.yaml
-    - bin/bun-cli.ts
     - docs/developer/CommitConventions.md
     - docs/developer/standard/ci-cd.md
     - docs/developer/standard/conventional-commits.md
     - docs/developer/standard/docker.md
+    - docs/developer/standard/helm.md
     - docs/developer/standard/infisical.md
     - docs/developer/standard/linting.md
     - docs/developer/standard/nix.md
@@ -142,40 +139,26 @@ atomi/workspace:
     - docs/developer/standard/shell-scripts.md
     - docs/developer/standard/taskfile.md
     - flake.nix
-    - go.mod
-    - goreleaser.go
     - infra/Dockerfile
+    - infra/root_chart/Chart.yaml
+    - infra/root_chart/templates/.gitkeep
+    - infra/root_chart/values.yaml
     - nix/env.nix
     - nix/fmt.nix
     - nix/packages.nix
     - nix/pre-commit.nix
     - nix/shells.nix
     - scripts/ci/docker.sh
+    - scripts/ci/helm.sh
     - scripts/ci/pre-commit.sh
     - scripts/ci/release.sh
     - scripts/ci/setup.sh
     - scripts/local/secrets.sh
-    - scripts/release/backup-changelog.sh
-    - scripts/release/bump.sh
-    - scripts/release/compile.sh
-    - scripts/release/fury.sh
-    - scripts/release/goreleaser-shim.sh
-    - scripts/release/install.sh
-    - scripts/release/local-bin.sh
-    - scripts/release/publish.sh
-    - scripts/release/smoke.sh
-    - src/cli/commands/get.ts
-    - src/cli/commands/set.ts
-    - src/cli/exit-codes.ts
-    - src/cli/output.ts
-    - src/cli/program.ts
-    - src/config/cli-config.ts
-    - tasks/Taskfile.compile.yaml
     - tasks/Taskfile.docker.yaml
+    - tasks/Taskfile.helm.yaml
     - tasks/Taskfile.secret.yaml
 managed_files:
   - .claude/skills/ci-cd-workflows/SKILL.md
-  - .claude/skills/cli-authoring/SKILL.md
   - .claude/skills/contributor-docs/SKILL.md
   - .claude/skills/contributor-docs/audit/PHASE.md
   - .claude/skills/contributor-docs/audit/big-picture.md
@@ -202,6 +185,7 @@ managed_files:
   - .claude/skills/domain-modeling/reference.md
   - .claude/skills/error-handling/SKILL.md
   - .claude/skills/error-handling/reference.md
+  - .claude/skills/helm-push/SKILL.md
   - .claude/skills/infisical/SKILL.md
   - .claude/skills/linting/SKILL.md
   - .claude/skills/nix/SKILL.md
@@ -226,23 +210,19 @@ managed_files:
   - .github/workflows/cd.yaml
   - .github/workflows/ci.yaml
   - .github/workflows/release.yaml
-  - .github/workflows/⚡reusable-compile.yaml
   - .github/workflows/⚡reusable-docker.yaml
+  - .github/workflows/⚡reusable-helm.yaml
   - .github/workflows/⚡reusable-precommit.yaml
   - .github/workflows/⚡reusable-release.yaml
-  - .github/workflows/⚡reusable-smoke.yaml
   - .github/workflows/🛡️merge-gatekeeper.yml
   - .gitignore
   - .gitlint
-  - .goreleaser.yaml
   - .prettierrc.yaml
   - CLAUDE.MD
   - CLAUDE.md
-  - INSTALLATION.md
   - README.md
   - Taskfile.yaml
   - atomi_release.yaml
-  - bin/bun-cli.ts
   - docs/developer/CommitConventions.md
   - docs/developer/standard/ci-cd.md
   - docs/developer/standard/contributor-docs/checklist.md
@@ -258,6 +238,7 @@ managed_files:
   - docs/developer/standard/domain-driven-design/languages/typescript.md
   - docs/developer/standard/functional-practices/index.md
   - docs/developer/standard/functional-practices/languages/typescript.md
+  - docs/developer/standard/helm.md
   - docs/developer/standard/infisical.md
   - docs/developer/standard/linting.md
   - docs/developer/standard/nix.md
@@ -278,34 +259,21 @@ managed_files:
   - docs/developer/standard/validation/index.md
   - docs/developer/standard/validation/languages/typescript.md
   - flake.nix
-  - go.mod
-  - goreleaser.go
   - infra/Dockerfile
+  - infra/root_chart/Chart.yaml
+  - infra/root_chart/templates/.gitkeep
+  - infra/root_chart/values.yaml
   - nix/env.nix
   - nix/fmt.nix
   - nix/packages.nix
   - nix/pre-commit.nix
   - nix/shells.nix
   - scripts/ci/docker.sh
+  - scripts/ci/helm.sh
   - scripts/ci/pre-commit.sh
   - scripts/ci/release.sh
   - scripts/ci/setup.sh
   - scripts/local/secrets.sh
-  - scripts/release/backup-changelog.sh
-  - scripts/release/bump.sh
-  - scripts/release/compile.sh
-  - scripts/release/fury.sh
-  - scripts/release/goreleaser-shim.sh
-  - scripts/release/install.sh
-  - scripts/release/local-bin.sh
-  - scripts/release/publish.sh
-  - scripts/release/smoke.sh
-  - src/cli/commands/get.ts
-  - src/cli/commands/set.ts
-  - src/cli/exit-codes.ts
-  - src/cli/output.ts
-  - src/cli/program.ts
-  - src/config/cli-config.ts
-  - tasks/Taskfile.compile.yaml
   - tasks/Taskfile.docker.yaml
+  - tasks/Taskfile.helm.yaml
   - tasks/Taskfile.secret.yaml
