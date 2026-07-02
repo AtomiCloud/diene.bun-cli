@@ -4,11 +4,6 @@ set -euo pipefail
 # Release orchestration (mirrors sulfone.iridium):
 #   publish.sh            → real release: GoReleaser owns the GitHub release, then push to Gemfury
 #   publish.sh --snapshot → dry-run: build everything into dist/ with NO publish
-die() {
-  echo "❌ $1" >&2
-  exit 1
-}
-
 SNAPSHOT=0
 [ "${1:-}" = "--snapshot" ] && SNAPSHOT=1
 
@@ -23,9 +18,18 @@ if [ "${SNAPSHOT}" -eq 1 ]; then
   exit 0
 fi
 
-[ -n "${SCOOP_BREW_TOKEN:-}" ] || die "'SCOOP_BREW_TOKEN' env var not set"
-[ -n "${FURY_TOKEN:-}" ] || die "'FURY_TOKEN' env var not set"
-[ -n "${GITHUB_TOKEN:-}" ] || die "'GITHUB_TOKEN' env var not set"
+[ -n "${SCOOP_BREW_TOKEN:-}" ] || {
+  echo "❌ 'SCOOP_BREW_TOKEN' env var not set" >&2
+  exit 1
+}
+[ -n "${FURY_TOKEN:-}" ] || {
+  echo "❌ 'FURY_TOKEN' env var not set" >&2
+  exit 1
+}
+[ -n "${GITHUB_TOKEN:-}" ] || {
+  echo "❌ 'GITHUB_TOKEN' env var not set" >&2
+  exit 1
+}
 
 # Release notes = this version's changelog section (diff of Changelog.md vs Changelog.old.md).
 echo "⚙️ Generating changelog diff ..."

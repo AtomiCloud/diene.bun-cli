@@ -1,4 +1,6 @@
 version: '3'
+vars:
+  ARTIFACT: 'bun-cli-{{OS}}-{{if eq ARCH "arm64"}}arm64{{else}}x64-baseline{{end}}'
 includes:
   compile: tasks/Taskfile.compile.yaml
   docker: tasks/Taskfile.docker.yaml
@@ -17,7 +19,7 @@ tasks:
   setup:
     desc: Setup the repository
     cmds:
-      - ./scripts/ci/setup.sh
+      - bun install --frozen-lockfile
       - ./scripts/local/secrets.sh
   clean:
     desc: Remove build, dependency, and coverage artifacts
@@ -33,8 +35,6 @@ tasks:
       - bun run bin/bun-cli.ts -- {{.CLI_ARGS}}
   run:bin:
     desc: "Run this host's compiled binary (pls compile first; args via --)"
-    vars:
-      ARTIFACT: 'bun-cli-{{OS}}-{{if eq ARCH "arm64"}}arm64{{else}}x64-baseline{{end}}'
     cmds:
       - ./dist/bin/{{.ARTIFACT}} {{.CLI_ARGS}}
   up:
@@ -61,7 +61,8 @@ tasks:
   sit:
     desc: Black-box journeys through the compiled binary (real Redis)
     cmds:
-      - ./scripts/ci/test-sit.sh
+      - task: compile
+      - CLI_BIN=dist/bin/{{.ARTIFACT}} bun test --config=bunfig.sit.toml
   test:coverage:
     desc: Run unit + integration tests, producing separate coverage artifacts
     cmds:

@@ -4,17 +4,29 @@ import { cliConfig } from '../../../src/config/cli-config';
 
 describe('cliConfig (CLI runtime surface)', () => {
   it('should expose the CLI identity', () => {
-    should(cliConfig.binaryName).equal('bun-cli');
-    should(cliConfig.description).be.a.String();
+    // Act
+    const actual = cliConfig;
+
+    // Assert
+    should(actual.binaryName).equal('bun-cli');
+    should(actual.description).be.a.String();
   });
 
   it('should source the version from package.json', () => {
-    should(cliConfig.version).be.a.String();
-    should(cliConfig.version).match(/^\d+\.\d+\.\d+/);
+    // Act
+    const actual = cliConfig.version;
+
+    // Assert
+    should(actual).be.a.String();
+    should(actual).match(/^\d+\.\d+\.\d+/);
   });
 
   it('should expose Redis defaults', () => {
-    should(cliConfig.redis.host).be.a.String();
-    should(cliConfig.redis.port).be.a.Number();
+    // Act
+    const actual = cliConfig.redis;
+
+    // Assert
+    should(actual.host).be.a.String();
+    should(actual.port).be.a.Number();
   });
 });

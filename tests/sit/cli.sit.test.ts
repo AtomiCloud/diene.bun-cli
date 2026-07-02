@@ -1,4 +1,5 @@
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, describe, it } from 'bun:test';
+import should from 'should';
 import { GenericContainer, type StartedTestContainer, Wait } from 'testcontainers';
 
 // SIT (see docs/developer/standard/testing): black-box journeys through the COMPILED binary
@@ -44,76 +45,112 @@ afterAll(async () => {
 
 describe('bun-cli (SIT, compiled binary)', () => {
   it('prints a semver with --version', async () => {
+    // Act
     const actual = await cli(['--version']);
-    expect(actual.code).toBe(0);
-    expect(actual.out.trim()).toMatch(/^\d+\.\d+\.\d+/);
+
+    // Assert
+    should(actual.code).equal(0);
+    should(actual.out.trim()).match(/^\d+\.\d+\.\d+/);
   });
 
   it('lists every command in --help', async () => {
+    // Act
     const actual = await cli(['--help']);
-    expect(actual.code).toBe(0);
-    for (const command of ['set', 'get', 'seed', 'doctor']) expect(actual.out).toContain(command);
+
+    // Assert
+    should(actual.code).equal(0);
+    for (const command of ['set', 'get', 'seed', 'doctor']) should(actual.out).containEql(command);
   });
 
   it('round-trips set then get', async () => {
+    // Arrange
     const set = await cli(['set', 'sit', 'greeting', 'hello']);
-    expect(set.code).toBe(0);
+    should(set.code).equal(0);
 
+    // Act
     const get = await cli(['get', 'sit', 'greeting']);
-    expect(get.code).toBe(0);
-    expect(get.out).toContain('hello');
+
+    // Assert
+    should(get.code).equal(0);
+    should(get.out).containEql('hello');
   });
 
   it('accepts set --ttl and the value is readable', async () => {
+    // Arrange
     const set = await cli(['set', 'sit', 'ephemeral', 'soon-gone', '--ttl', '60']);
-    expect(set.code).toBe(0);
+    should(set.code).equal(0);
 
+    // Act
     const get = await cli(['get', 'sit', 'ephemeral']);
-    expect(get.out).toContain('soon-gone');
+
+    // Assert
+    should(get.out).containEql('soon-gone');
   });
 
   it('reports not-found with a non-zero exit', async () => {
+    // Act
     const actual = await cli(['get', 'sit', 'missing-key']);
-    expect(actual.code).not.toBe(0);
-    expect(actual.out).toContain('not found');
+
+    // Assert
+    should(actual.code).not.equal(0);
+    should(actual.out).containEql('not found');
   });
 
   it('rejects an invalid --ttl with a non-zero exit', async () => {
+    // Act
     const actual = await cli(['set', 'sit', 'k', 'v', '--ttl', 'abc']);
-    expect(actual.code).not.toBe(0);
-    expect(actual.err).toContain('invalid input');
+
+    // Assert
+    should(actual.code).not.equal(0);
+    should(actual.err).containEql('invalid input');
   });
 
   it('seeds N entries readable afterwards', async () => {
+    // Arrange
     const seed = await cli(['seed', 'sit-seed', '5']);
-    expect(seed.code).toBe(0);
-    expect(seed.out).toContain('seeded 5 entries');
+    should(seed.code).equal(0);
+    should(seed.out).containEql('seeded 5 entries');
 
+    // Act
     const get = await cli(['get', 'sit-seed', 'sample-3']);
-    expect(get.out).toContain('value-3');
+
+    // Assert
+    should(get.out).containEql('value-3');
   });
 
   it('rejects a non-numeric seed count', async () => {
+    // Act
     const actual = await cli(['seed', 'sit-seed', 'abc']);
-    expect(actual.code).not.toBe(0);
-    expect(actual.err).toContain('invalid input');
+
+    // Assert
+    should(actual.code).not.equal(0);
+    should(actual.err).containEql('invalid input');
   });
 
   it('doctor reports platform and a reachable backend', async () => {
+    // Act
     const actual = await cli(['doctor']);
-    expect(actual.code).toBe(0);
-    expect(actual.out).toContain('platform:');
-    expect(actual.out + actual.err).toContain('reachable');
+
+    // Assert
+    should(actual.code).equal(0);
+    should(actual.out).containEql('platform:');
+    should(actual.out + actual.err).containEql('reachable');
   });
 
   it('doctor exits non-zero when the backend is unreachable', async () => {
+    // Act
     const actual = await cli(['doctor'], { REDIS_HOST: '127.0.0.1', REDIS_PORT: '1' });
-    expect(actual.code).not.toBe(0);
+
+    // Assert
+    should(actual.code).not.equal(0);
   });
 
   it('fails an unknown command with help output', async () => {
+    // Act
     const actual = await cli(['bogus']);
-    expect(actual.code).not.toBe(0);
-    expect(actual.err.toLowerCase()).toContain('unknown command');
+
+    // Assert
+    should(actual.code).not.equal(0);
+    should(actual.err.toLowerCase()).containEql('unknown command');
   });
 });

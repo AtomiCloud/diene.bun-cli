@@ -1,4 +1,5 @@
 import type { Command } from 'commander';
+import { z } from 'zod';
 import type { IKeyValueStore } from '../../adapters/kv-store';
 import { NamespacedKeyValidationError, namespacedKey } from '../../lib/slug';
 import { EXIT_ERROR, EXIT_OK } from '../exit-codes';
@@ -6,6 +7,9 @@ import type { CliIo } from '../output';
 
 /** One-year --ttl cap: reject absurd expiries up front instead of a misleading backend error. */
 const MAX_TTL_SECONDS = 365 * 24 * 60 * 60;
+
+/** Decimal digits only — `Number()` alone would accept hex/exponential the error text excludes. */
+const TtlSchema = z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1).max(MAX_TTL_SECONDS));
 
 interface SetOptions {
   /** Optional expiry, in seconds, parsed from the `--ttl` flag. */
@@ -29,15 +33,14 @@ export async function runSet(
 
   let ttlSeconds: number | undefined;
   if (options.ttl !== undefined) {
-    // Require plain decimal digits so the error text stays honest — `Number()` alone would accept
-    // hex (`0x10`) and exponential (`1e2`) notation that the "positive integer" message excludes.
-    ttlSeconds = /^\d+$/.test(options.ttl) ? Number(options.ttl) : Number.NaN;
-    if (!Number.isSafeInteger(ttlSeconds) || ttlSeconds <= 0 || ttlSeconds > MAX_TTL_SECONDS) {
+    const parsed = TtlSchema.safeParse(options.ttl);
+    if (!parsed.success) {
       io.error(
         `invalid input: --ttl must be a positive integer of at most ${MAX_TTL_SECONDS} seconds (got "${options.ttl}")`,
       );
       return EXIT_ERROR;
     }
+    ttlSeconds = parsed.data;
   }
 
   let composed: string;

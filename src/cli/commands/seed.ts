@@ -1,4 +1,5 @@
 import type { Command } from 'commander';
+import { z } from 'zod';
 import type { IKeyValueStore } from '../../adapters/kv-store';
 import { NamespacedKeyValidationError, namespacedKey } from '../../lib/slug';
 import { EXIT_ERROR, EXIT_OK } from '../exit-codes';
@@ -7,6 +8,8 @@ import type { CliIo } from '../output';
 
 /** Cap seeding so a typo can't hammer the backend. */
 const MAX_SEED_COUNT = 10_000;
+
+const CountSchema = z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1).max(MAX_SEED_COUNT));
 
 interface SeedDeps {
   readonly store: IKeyValueStore;
@@ -18,11 +21,12 @@ interface SeedDeps {
 export async function runSeed(deps: SeedDeps, namespace: string, count: string): Promise<number> {
   const { store, io, progress } = deps;
 
-  const total = Number(count);
-  if (!Number.isInteger(total) || total < 1 || total > MAX_SEED_COUNT) {
+  const parsed = CountSchema.safeParse(count);
+  if (!parsed.success) {
     io.error(`invalid input: count must be an integer between 1 and ${MAX_SEED_COUNT} (got "${count}")`);
     return EXIT_ERROR;
   }
+  const total = parsed.data;
 
   try {
     progress.start(total);

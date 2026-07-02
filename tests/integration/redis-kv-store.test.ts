@@ -26,20 +26,26 @@ describe('RedisKeyValueStore (Testcontainers)', () => {
   }, 120_000);
 
   it('should persist and retrieve a namespaced value', async () => {
+    // Arrange
     const expected = 'hello';
     const key = namespacedKey('Bun Base', 'sample key');
 
+    // Act
     await (subject as IKeyValueStore).set(key, expected);
     const actual = await (subject as IKeyValueStore).get(key);
 
+    // Assert
     should(actual).equal(expected);
   });
 
   it('should return null for an unknown key', async () => {
+    // Arrange
     const input = 'bun-base:missing';
 
+    // Act
     const actual = await (subject as IKeyValueStore).get(input);
 
+    // Assert
     should(actual).be.null();
   });
 });

@@ -2,15 +2,13 @@
 set -euo pipefail
 
 # Cross-compile the standalone CLI (entry from package.json .bin) for every supported target.
-die() {
-  echo "❌ $1" >&2
-  exit 1
-}
-
 ./scripts/ci/setup.sh
 
 ENTRY="$(jq -r '.bin | to_entries[0].value' package.json)"
-[ -n "${ENTRY}" ] && [ "${ENTRY}" != "null" ] || die "no .bin entry in package.json"
+[ -n "${ENTRY}" ] && [ "${ENTRY}" != "null" ] || {
+  echo "❌ no .bin entry in package.json" >&2
+  exit 1
+}
 
 OUTDIR="${COMPILE_OUTDIR:-dist/bin}"
 mkdir -p "${OUTDIR}"

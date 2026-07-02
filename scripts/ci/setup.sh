@@ -3,3 +3,4 @@ set -euo pipefail
 
 echo "📦 Installing dependencies..."
 bun install --frozen-lockfile
+echo "✅ Dependencies installed"
