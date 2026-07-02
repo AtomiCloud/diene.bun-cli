@@ -13,42 +13,48 @@ Redis defaults). Publish/build metadata lives where it is used: compile targets 
 `scripts/release/compile.sh`, the Gemfury endpoint in `scripts/release/fury.sh`, packaging in
 `.goreleaser.yaml`, the image in `infra/Dockerfile`, and the standalone `scripts/release/install.sh`.
 
-## 1. Framework — add or change a command
+## 1. Framework — a CLI is the three-layer architecture
 
-The CLI mirrors the repo's three-layer / DI architecture. The tiers:
+A CLI is just an API-layer type (see the three-layer skill: `CLI: parse args → domain → exit
+code`). Commander is imperative, so its imperativeness is quarantined in exactly two places: the
+composition root and each controller's `register()`. Everything is a class with constructor
+injection (stateless-oop-di) — no free-function handlers, no ad-hoc deps objects.
 
-- `bin/bun-cli.ts` — executable entry (`#!/usr/bin/env bun`). Thin: builds the program and
-  parses argv. The single file `bun build --compile` targets.
-- `src/cli/program.ts` — composition root (the guardrail tier). Builds the commander `Command`,
-  injects the store factory + IO + prompt into handlers via `ProgramDeps`.
-- `src/cli/commands/*.ts` — one file per command. Each exports a pure `runX(deps, ...args)`
-  handler returning an exit code, plus a `registerXCommand(program, deps)` that wires it onto
-  commander. Handlers depend on `IKeyValueStore` (logic/storage) and `CliIo` (presentation) —
-  never on `console`/`chalk`/Redis directly.
-- `src/cli/output.ts` — the `CliIo` presentation boundary over `chalk` (success/warn/error).
-- `src/cli/feedback.ts` — the live-feedback boundary: `Spinner` (ora) and `ProgressBar`
-  (cli-progress). Shell calls go through Bun Shell (`$` from `bun`, zero-dependency) behind an
-  injected `ShellFn` (see `doctor.ts`). All injected like `CliIo`, so handlers stay testable —
-  fakes in `tests/unit/cli/fakes.ts`; `seed.ts` shows the bar, `doctor.ts` the spinner + shell.
-- `src/config/cli-config.ts` — the CLI runtime config (binary name, version, Redis defaults).
+- `bin/bun-cli.ts` — **the composition root ("big bang")**. `main()` constructs the ENTIRE world
+  once — adapters → domain services → controllers → commander program — then `parseAsync`. The
+  store is opened and closed here, not per command. This is the only place `new` is called.
+- `src/lib/kv/` — **domain layer (zero IO)**: `slug.ts` (pure logic + domain errors),
+  `interfaces.ts` (the ports the domain defines: `IKeyValueStore`, `IProgressReporter`,
+  `IShell`), `service.ts` (`KvService`) and `doctor-service.ts` — stateless classes over the
+  ports.
+- `src/adapters/kv/api/` — **controllers**: one class per command (`SetController`, …). A
+  controller does ONLY guardrail work: zod-validate the raw args (`validator.ts`), route to the
+  pre-built service, map domain errors → `io` messages + exit code (`exit-codes.ts`).
+  `register(program)` declares the commander route whose action just calls `this.handle(...)`.
+- `src/adapters/kv/data/` — `RedisKeyValueStore` implements the domain's `IKeyValueStore`.
+- `src/adapters/terminal/` — presentation adapters, all classes: `ConsoleIo` (chalk),
+  `OraSpinner` (ora), `CliProgressBar` (cli-progress), `InquirerPrompt` (inquirer).
+- `src/adapters/system/` — `BunShell` implements `IShell` via Bun Shell (`$`, zero-dependency).
+- `src/config/cli-config.ts` — the CLI runtime config (binary name, version, Redis defaults),
+  read only by the composition root.
 
 ### To add a command `foo`
 
-1. Create `src/cli/commands/foo.ts` with:
-   - `export async function runFoo(deps: FooDeps, ...args): Promise<number>` — pure handler,
-     returns `EXIT_OK` / `EXIT_ERROR` (import from `src/cli/exit-codes.ts`). Call the library
-     (`namespacedKey` from `src/lib/slug`) and the injected store; map domain errors
-     (`NamespacedKeyValidationError`, backend failures) to `deps.io.error(...)` + non-zero exit.
-   - `export function registerFooCommand(program, deps)` — declares args/options and the action.
-2. Register it in `src/cli/program.ts` (`registerFooCommand(program, { ... })`).
-3. Add `tests/unit/cli/foo.test.ts` using the fakes in `tests/unit/cli/fakes.ts`
-   (`FakeKeyValueStore`, `captureIo`). Assert the store calls, exit code, and rendered output for
-   success / validation-error / not-found / unreachable-backend paths. No real Redis.
-4. Run `bun test --config=bunfig.unit.toml` (or `pls unit`).
+1. Domain first: add the logic to an existing service in `src/lib/kv/` (or a new stateless
+   service class) — zero IO, dependencies only via constructor-injected ports from
+   `interfaces.ts`.
+2. Create `src/adapters/kv/api/foo-controller.ts`: a class taking the service + presentation
+   ports in its constructor, a `register(program)` that declares the route, and a public
+   `handle(...): Promise<number>` that validates (zod in `validator.ts`), routes, and maps
+   errors to `EXIT_OK`/`EXIT_ERROR`.
+3. Wire it in `bin/bun-cli.ts`'s `main()`: `new FooController(service, io).register(program);`.
+4. Add `tests/unit/kv/foo-controller.test.ts` using the fakes in `tests/unit/kv/fakes.ts` —
+   assert store calls, exit codes, and rendered output for success / validation-error /
+   unreachable-backend paths. No real Redis; `register()` is covered by SIT, not unit tests.
+5. Run `pls unit`, then `pls sit` for the black-box journey.
 
-Interactive prompts use inquirer through an injected `PromptFn` so they stay testable and never
-hang in CI — guard them behind the `interactive` (TTY) flag and fail fast with a clear message
-otherwise (see `get.ts`).
+Interactive prompts go through the injected `IPrompt` and are guarded by the `interactive`
+(TTY) flag resolved in main — never prompt off a TTY, fail fast instead (see `GetController`).
 
 Try it locally: `pls up` (dependencies) → `pls run -- set <ns> <key> <value>` (dev mode) or
 `pls compile && pls run:bin -- doctor` (compiled binary) → `pls down`.

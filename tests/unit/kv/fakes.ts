@@ -1,6 +1,7 @@
-import type { IKeyValueStore } from '../../../src/adapters/kv-store';
-import type { ProgressBar, Spinner } from '../../../src/cli/feedback';
-import type { CliIo } from '../../../src/cli/output';
+import type { IKeyValueStore, IProgressReporter, IShell } from '../../../src/lib/kv/interfaces';
+import type { ICliIo } from '../../../src/adapters/terminal/console-io';
+import type { IPrompt } from '../../../src/adapters/terminal/prompt';
+import type { ISpinner } from '../../../src/adapters/terminal/spinner';
 
 /** Records a single `set` call so tests can assert the composed key, value, and ttl. */
 export interface SetCall {
@@ -42,7 +43,7 @@ export class FakeKeyValueStore implements IKeyValueStore {
 }
 
 /** Captures everything written to the CLI IO so tests can assert on rendered output. */
-export interface CapturedIo extends CliIo {
+export interface CapturedIo extends ICliIo {
   readonly successes: string[];
   readonly warnings: string[];
   readonly errors: string[];
@@ -69,7 +70,7 @@ export function captureIo(): CapturedIo {
 }
 
 /** Records spinner transitions so tests can assert on live feedback. */
-export interface CapturedSpinner extends Spinner {
+export interface CapturedSpinner extends ISpinner {
   readonly events: string[];
 }
 
@@ -89,27 +90,46 @@ export function captureSpinner(): CapturedSpinner {
   };
 }
 
-/** Records progress-bar activity so tests can assert totals and ticks. */
-export interface CapturedProgress extends ProgressBar {
+/** Records progress-reporter activity so tests can assert totals and ticks. */
+export interface CapturedProgress extends IProgressReporter {
   readonly totals: number[];
   ticks: number;
   stopped: boolean;
 }
 
 export function captureProgress(): CapturedProgress {
-  const bar: CapturedProgress = {
+  const reporter: CapturedProgress = {
     totals: [],
     ticks: 0,
     stopped: false,
     start: (total: number): void => {
-      bar.totals.push(total);
+      reporter.totals.push(total);
     },
     tick: (): void => {
-      bar.ticks += 1;
+      reporter.ticks += 1;
     },
     stop: (): void => {
-      bar.stopped = true;
+      reporter.stopped = true;
     },
   };
-  return bar;
+  return reporter;
+}
+
+/** Canned `IShell` — returns a fixed platform string or throws the configured failure. */
+export class FakeShell implements IShell {
+  constructor(private readonly result: string | Error) {}
+
+  async platform(): Promise<string> {
+    if (this.result instanceof Error) throw this.result;
+    return this.result;
+  }
+}
+
+/** Canned `IPrompt` — answers every question with the configured value. */
+export class FakePrompt implements IPrompt {
+  constructor(private readonly answer: string) {}
+
+  async ask(_message: string): Promise<string> {
+    return this.answer;
+  }
 }

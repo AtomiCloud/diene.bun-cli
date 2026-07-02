@@ -4,5 +4,5 @@ timeout = 120000
 coverageReporter = ["text", "lcov"]
 coverageDir = "coverage/int"
 coverageSkipTestFiles = true
-# Integration coverage measures src/adapters only; cli/lib are covered by the unit suite.
-coveragePathIgnorePatterns = ["src/cli/**", "src/lib/**"]
+# Integration coverage measures the data adapter only; the rest is covered by the unit suite.
+coveragePathIgnorePatterns = ["src/lib/**", "src/adapters/kv/api/**", "src/adapters/terminal/**", "src/adapters/system/**"]

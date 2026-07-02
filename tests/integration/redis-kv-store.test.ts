@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, it } from 'bun:test';
 import should from 'should';
 import { GenericContainer, type StartedTestContainer, Wait } from 'testcontainers';
-import type { IKeyValueStore } from '../../src/adapters/kv-store';
-import { RedisKeyValueStore } from '../../src/adapters/redis-kv-store';
-import { namespacedKey } from '../../src/lib/slug';
+import { RedisKeyValueStore } from '../../src/adapters/kv/data/redis-kv-store';
+import type { IKeyValueStore } from '../../src/lib/kv/interfaces';
+import { namespacedKey } from '../../src/lib/kv/slug';
 
 describe('RedisKeyValueStore (Testcontainers)', () => {
   let container: StartedTestContainer | undefined;

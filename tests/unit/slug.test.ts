@@ -1,6 +1,6 @@
 import { describe, it } from 'bun:test';
 import should from 'should';
-import { NamespacedKeyValidationError, namespacedKey, slugify } from '../../src/lib/slug';
+import { NamespacedKeyValidationError, namespacedKey, slugify } from '../../src/lib/kv/slug';
 
 describe('slugify', () => {
   it.each([

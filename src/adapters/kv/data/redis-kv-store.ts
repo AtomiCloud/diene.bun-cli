@@ -1,5 +1,10 @@
 import { Redis } from 'ioredis';
-import type { IKeyValueStore, RedisConnection } from './kv-store';
+import type { IKeyValueStore } from '../../../lib/kv/interfaces';
+
+export interface RedisConnection {
+  readonly host: string;
+  readonly port: number;
+}
 
 export class RedisKeyValueStore implements IKeyValueStore {
   private readonly client: Redis;
