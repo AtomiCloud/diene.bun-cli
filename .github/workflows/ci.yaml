@@ -33,6 +33,11 @@ jobs:
     name: Compile Binaries
     uses: ./.github/workflows/⚡reusable-compile.yaml
     secrets: inherit
+  sit:
+    name: SIT
+    needs: compile
+    uses: ./.github/workflows/⚡reusable-sit.yaml
+    secrets: inherit
   smoke:
     name: Smoke ${{ matrix.target }}
     needs: compile

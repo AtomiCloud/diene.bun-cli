@@ -44,6 +44,10 @@ tasks:
     cmds:
       - task: unit:default
       - task: int:default
+  sit:
+    desc: Black-box journeys through the compiled binary (real Redis)
+    cmds:
+      - ./scripts/ci/test-sit.sh
   test:coverage:
     desc: Run unit + integration tests, producing separate coverage artifacts
     cmds:

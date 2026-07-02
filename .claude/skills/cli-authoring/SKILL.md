@@ -68,6 +68,9 @@ The x64 target uses the `-baseline` Bun build (no AVX2 requirement) so it runs o
 native x64 host.
 
 - `pls compile:smoke -- dist/bin/<binary>` runs `--version`/`--help` and asserts the output.
+- `pls sit` (→ `tests/sit/cli.sit.test.ts`) is the black-box tier per the testing standard:
+  every command journeyed through the compiled binary against a real Redis (regression
+  invariants, no coverage). CI runs it after compile via `⚡reusable-sit.yaml`.
 - CI: `⚡reusable-compile.yaml` builds once on Linux and uploads the artifact; the `smoke` matrix
   in `ci.yaml` downloads it and runs `scripts/release/smoke.sh` per target.
 - `nix build .#bun-cli` builds the binary reproducibly via Nix (deps vendored as a fixed-output
