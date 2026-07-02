@@ -31,6 +31,20 @@ tasks:
     desc: 'Run the CLI locally (args via --, e.g. -- set ns key value)'
     cmds:
       - bun run bin/bun-cli.ts -- {{.CLI_ARGS}}
+  cli:bin:
+    desc: "Run this host's compiled binary (pls compile first; args via --)"
+    vars:
+      ARTIFACT: 'bun-cli-{{OS}}-{{if eq ARCH "arm64"}}arm64{{else}}x64-baseline{{end}}'
+    cmds:
+      - ./dist/bin/{{.ARTIFACT}} {{.CLI_ARGS}}
+  redis:
+    desc: 'Start a disposable local Redis to try the CLI against'
+    cmds:
+      - docker run -d --rm --name bun-cli-redis -p 6379:6379 redis:7.4.5-alpine
+  redis:stop:
+    desc: 'Stop the disposable local Redis'
+    cmds:
+      - docker rm -f bun-cli-redis
   lint:
     desc: Lints the whole code-base
     cmds:
