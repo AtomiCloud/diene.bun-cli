@@ -24,6 +24,9 @@ with packages;
   ];
 
   releaser = [
+    git
+    go
+    goreleaser
     sg
   ];
 

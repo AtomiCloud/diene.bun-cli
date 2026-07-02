@@ -35,6 +35,12 @@ All commits must follow the conventional commits specification. Use `sg` for lin
 
 See [docs/developer/bun-baseline.md](docs/developer/bun-baseline.md) for Bun-specific commands, test modes, coverage, and runtime notes.
 
+# CLI Authoring
+
+See the [cli-authoring skill](.claude/skills/cli-authoring/SKILL.md) for extending the commander
+CLI, cross-compiling the standalone binaries, and publishing to every channel; install paths are
+in [INSTALLATION.md](INSTALLATION.md).
+
 # Development Environment
 
 All binaries, tools, and PATH are managed by **Nix**. Do not install tools manually or modify PATH outside of the nix configuration.
@@ -64,10 +70,6 @@ See **[docs/developer/standard/nix.md](docs/developer/standard/nix.md)** for the
 # Docker
 
 This project uses Docker for containerized builds and deployments. See [docs/developer/standard/docker.md](docs/developer/standard/docker.md) for details.
-
-# Helm
-
-This project uses Helm for Kubernetes chart packaging and deployment. See [docs/developer/standard/helm.md](docs/developer/standard/helm.md) for details.
 
 # Linting
 

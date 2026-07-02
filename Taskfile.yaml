@@ -1,7 +1,15 @@
 version: '3'
+vars:
+  # Per-instance binary name derived from package.json .bin — never hardcode the sample prefix.
+  ARTIFACT_PREFIX:
+    sh: jq -r '.bin | to_entries[0].key' package.json
+  ARTIFACT: '{{.ARTIFACT_PREFIX}}-{{OS}}-{{if eq ARCH "arm64"}}arm64{{else}}x64-baseline{{end}}'
+  # Per-instance entry path derived from package.json .bin — never hardcode the sample entry.
+  ENTRY:
+    sh: jq -r '.bin | to_entries[0].value' package.json
 includes:
+  compile: tasks/Taskfile.compile.yaml
   docker: tasks/Taskfile.docker.yaml
-  helm: tasks/Taskfile.helm.yaml
   secret: tasks/Taskfile.secret.yaml
   unit:
     taskfile: tasks/Taskfile.test.yaml
@@ -17,16 +25,32 @@ tasks:
   setup:
     desc: Setup the repository
     cmds:
-      - ./scripts/ci/setup.sh
+      - ./scripts/local/setup.sh
       - ./scripts/local/secrets.sh
   clean:
     desc: Remove build, dependency, and coverage artifacts
     cmds:
       - rm -rf dist node_modules coverage
   build:
-    desc: Build the neutral sample bundle to dist/
+    desc: Build the CLI bundle to dist/
     cmds:
-      - bun build ./src/index.ts --outdir ./dist --target bun
+      - bun build ./{{.ENTRY}} --outdir ./dist --target bun
+  run:
+    desc: 'Run the CLI locally (args via --, e.g. -- --help)'
+    cmds:
+      - bun run {{.ENTRY}} -- {{.CLI_ARGS}}
+  run:bin:
+    desc: "Run this host's compiled binary (pls compile first; args via --)"
+    cmds:
+      - ./dist/bin/{{.ARTIFACT}} {{.CLI_ARGS}}
+  up:
+    desc: 'Start all local dependencies (detached)'
+    cmds:
+      - docker run -d --rm --name bun-cli-redis -p 6379:6379 redis:7.4.5-alpine
+  down:
+    desc: 'Stop all local dependencies'
+    cmds:
+      - docker rm -f bun-cli-redis
   lint:
     desc: Lints the whole code-base
     cmds:
@@ -36,15 +60,43 @@ tasks:
     cmds:
       - ./scripts/local/deadcode.sh
   test:
-    desc: Run unit + integration tests
+    desc: Run all suites without coverage (unit + int + sit)
     cmds:
       - task: unit:default
       - task: int:default
+      - task: test:sit
+  test:unit:
+    desc: Run the unit suite without coverage
+    cmds:
+      - task: unit:default
+  test:int:
+    desc: Run the integration suite without coverage
+    cmds:
+      - task: int:default
+  test:sit:
+    desc: SIT journeys through the freshly compiled binary (binary driver, no coverage)
+    deps:
+      - compile
+    cmds:
+      - SIT_DRIVER=binary CLI_BIN=dist/bin/{{.ARTIFACT}} bun test --config=bunfig.sit.toml
   test:coverage:
-    desc: Run unit + integration tests, producing separate coverage artifacts
+    desc: Run every coverage-capable suite with coverage (unit + int + in-process sit)
     cmds:
       - task: unit:coverage
       - task: int:coverage
+      - task: test:sit:coverage
+  test:unit:coverage:
+    desc: Run the unit suite with coverage
+    cmds:
+      - task: unit:coverage
+  test:int:coverage:
+    desc: Run the integration suite with coverage
+    cmds:
+      - task: int:coverage
+  test:sit:coverage:
+    desc: SIT journeys in-process — same journeys, full-system coverage to coverage/sit
+    cmds:
+      - SIT_DRIVER=inprocess bun test --config=bunfig.sit.toml --coverage
   test:watch:
     desc: Watch the fast unit suite (aggregate watch entry point)
     cmds:

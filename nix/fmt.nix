@@ -9,7 +9,6 @@ let
       "node_modules/*"
       "dist/*"
       "coverage/*"
-      "infra/root_chart/*"
     ];
 
     programs = {
