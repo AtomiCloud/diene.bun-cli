@@ -33,7 +33,7 @@ The CLI mirrors the repo's three-layer / DI architecture. The tiers:
 1. Create `src/cli/commands/foo.ts` with:
    - `export async function runFoo(deps: FooDeps, ...args): Promise<number>` — pure handler,
      returns `EXIT_OK` / `EXIT_ERROR` (import from `src/cli/exit-codes.ts`). Call the library
-     (`buildSampleKey` / `namespacedKey`) and the injected store; map domain errors
+     (`namespacedKey` from `src/lib/slug`) and the injected store; map domain errors
      (`NamespacedKeyValidationError`, backend failures) to `deps.io.error(...)` + non-zero exit.
    - `export function registerFooCommand(program, deps)` — declares args/options and the action.
 2. Register it in `src/cli/program.ts` (`registerFooCommand(program, { ... })`).

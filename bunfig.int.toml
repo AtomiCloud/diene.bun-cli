@@ -5,5 +5,5 @@ coverageReporter = ["text", "lcov"]
 coverageDir = "coverage/int"
 coverageSkipTestFiles = true
 # Integration coverage measures only the src/adapters boundary it exercises.
-# Exclude the composition-root entrypoint and pure src/lib units (covered by the unit suite).
-coveragePathIgnorePatterns = ["src/index.ts", "src/lib/**"]
+# Exclude the CLI tier and pure src/lib units (covered by the unit suite).
+coveragePathIgnorePatterns = ["src/cli/**", "src/lib/**"]

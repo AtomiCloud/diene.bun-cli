@@ -1,7 +1,6 @@
 import type { Command } from 'commander';
 import type { IKeyValueStore } from '../../adapters/kv-store';
-import { buildSampleKey } from '../../index';
-import { NamespacedKeyValidationError } from '../../lib/slug';
+import { NamespacedKeyValidationError, namespacedKey } from '../../lib/slug';
 import { EXIT_ERROR, EXIT_OK } from '../exit-codes';
 import type { CliIo } from '../output';
 
@@ -25,8 +24,8 @@ interface SetDeps {
 /**
  * `set <namespace> <key> <value> [--ttl <seconds>]`.
  *
- * Composes the namespaced key through the existing library (`buildSampleKey` →
- * `namespacedKey`) and writes it through the injected `IKeyValueStore` (3-layer/DI, FR2).
+ * Composes the namespaced key through the existing library (`namespacedKey`) and writes it
+ * through the injected `IKeyValueStore` (3-layer/DI, FR2).
  * Returns an exit code rather than calling `process.exit`, so it is fully unit-testable.
  */
 export async function runSet(
@@ -53,7 +52,7 @@ export async function runSet(
 
   let composed: string;
   try {
-    composed = buildSampleKey(namespace, key);
+    composed = namespacedKey(namespace, key);
   } catch (error) {
     if (error instanceof NamespacedKeyValidationError) {
       io.error(`invalid input: ${error.message}`);

@@ -45,7 +45,7 @@ pre-commit.
 
 - Unit coverage: `coverage/unit/lcov.info`.
 - Integration coverage: `coverage/int/lcov.info`. The integration suite excludes
-  `src/index.ts` and `src/lib/**` (covered by the unit suite) via
+  `src/cli/**` and `src/lib/**` (covered by the unit suite) via
   `coveragePathIgnorePatterns` in `bunfig.int.toml`.
 - The local coverage artifact is blocking.
 - Codecov upload is non-blocking and split by `unit` / `int` flags.
@@ -54,8 +54,8 @@ pre-commit.
 ## Build & runtime
 
 - Bun is the application runtime and build target.
-- `pls build` (and `scripts/ci/build.sh`) bundle `src/index.ts` to
-  `dist/index.js` with `bun build --target bun`.
+- `pls build` (and `scripts/ci/build.sh`) bundle `bin/bun-cli.ts` to
+  `dist/bun-cli.js` with `bun build --target bun`.
 - `infra/Dockerfile` is a multi-stage Bun image pinned by digest.
 - The runtime stage runs as the non-root `bun` user.
 - `pls docker:build && pls docker:run` builds and runs the sample executable; it
@@ -80,7 +80,7 @@ template is expected to adapt:
 - **Docker runtime entrypoint** — `infra/Dockerfile` `ENTRYPOINT`.
 - **Badges / template promotion** — the `AtomiCloud/diene.bun-cli` paths in
   `README.md` badges are rewritten on promotion.
-- **Sample source/tests** — `src/lib`, `src/adapters`, `src/index.ts`, and the
+- **Sample source/tests** — `src/lib`, `src/adapters`, `src/cli`, and the
   matching `tests/` suites are illustrative and replaced per service.
 
 Helm has been dropped from this CLI baseline (a CLI is not a deployed service),

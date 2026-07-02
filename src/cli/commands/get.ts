@@ -1,8 +1,7 @@
 import type { Command } from 'commander';
 import inquirer from 'inquirer';
 import type { IKeyValueStore } from '../../adapters/kv-store';
-import { buildSampleKey } from '../../index';
-import { NamespacedKeyValidationError } from '../../lib/slug';
+import { NamespacedKeyValidationError, namespacedKey } from '../../lib/slug';
 import { EXIT_ERROR, EXIT_OK } from '../exit-codes';
 import type { CliIo } from '../output';
 
@@ -47,7 +46,7 @@ export async function runGet(deps: GetDeps, namespace: string, key?: string): Pr
 
   let composed: string;
   try {
-    composed = buildSampleKey(namespace, resolvedKey);
+    composed = namespacedKey(namespace, resolvedKey);
   } catch (error) {
     if (error instanceof NamespacedKeyValidationError) {
       io.error(`invalid input: ${error.message}`);
