@@ -5,7 +5,10 @@ set -euo pipefail
 ./scripts/ci/setup.sh
 
 os="$([ "$(uname -s)" = "Darwin" ] && echo darwin || echo linux)"
-arch="$([ "$(uname -m)" = "arm64" ] || [ "$(uname -m)" = "aarch64" ] && echo arm64 || echo x64-baseline)"
+case "$(uname -m)" in
+arm64 | aarch64) arch="arm64" ;;
+*) arch="x64-baseline" ;;
+esac
 CLI_BIN="${CLI_BIN:-dist/bin/bun-cli-${os}-${arch}}"
 
 # CI downloads the compile artifact; locally, compile on demand.
