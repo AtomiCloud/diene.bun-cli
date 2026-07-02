@@ -1,7 +1,5 @@
-# GoReleaser v2 (mirrors sulfone.iridium). The CLI is a Bun binary, not Go — and GoReleaser's own
-# `prebuilt` builder is Pro-only, so we compile a trivial Go stub (goreleaser.go) into each target
-# slot and the post-build hook (goreleaser-shim.sh) swaps the real prebuilt Bun binary in over it.
-# GoReleaser then owns the archives, deb/rpm, cask, and the GitHub release.
+# A Go stub is built per target and the shim swaps the prebuilt Bun binary in (prebuilt builder
+# is Pro-only, mirrors sulfone.iridium); GoReleaser owns archives, deb/rpm, cask, and the release.
 version: 2
 
 project_name: bun-cli

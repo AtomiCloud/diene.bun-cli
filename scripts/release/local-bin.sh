@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Print the dist/bin/ artifact path for THIS host's OS/arch so `pls compile:smoke` runs the
-# locally-runnable binary. Prints nothing when the host has no shipped target.
+# Print this host's dist/bin/ artifact path (empty when the host has no shipped target).
 OUTDIR="${COMPILE_OUTDIR:-dist/bin}"
 
 case "$(uname -s)" in

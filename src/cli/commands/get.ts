@@ -17,21 +17,13 @@ interface GetDeps {
   readonly interactive: boolean;
 }
 
-/**
- * The single contrived inquirer interaction (FR1): prompt for one missing argument.
- */
+/** The one sample inquirer interaction: prompt for a missing argument. */
 export const inquirerPrompt: PromptFn = async (message: string): Promise<string> => {
   const { answer } = await inquirer.prompt<{ answer: string }>([{ type: 'input', name: 'answer', message }]);
   return answer;
 };
 
-/**
- * `get <namespace> [key]`.
- *
- * Reads through the injected `IKeyValueStore`. When `key` is omitted it prompts via inquirer
- * in an interactive TTY, and fails fast with a clear message in non-interactive contexts (CI)
- * so it never hangs. Prints the value, or a yellow "not found" with a non-zero exit.
- */
+/** `get <namespace> [key]` — prompts for a missing key on a TTY, fails fast in CI so it never hangs. */
 export async function runGet(deps: GetDeps, namespace: string, key?: string): Promise<number> {
   const { store, io, prompt, interactive } = deps;
 
@@ -91,9 +83,7 @@ export function registerGetCommand(
           key,
         );
       } finally {
-        // Guard close() so a teardown failure (e.g. quit() rejecting when Redis was never
-        // reachable) can't throw out of finally and mask the user-friendly error + exit code
-        // runGet already produced for that exact failure case.
+        // A close() failure must not mask the command's own error + exit code.
         try {
           await store.close();
         } catch (closeError) {

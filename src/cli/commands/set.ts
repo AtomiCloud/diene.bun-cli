@@ -4,11 +4,7 @@ import { NamespacedKeyValidationError, namespacedKey } from '../../lib/slug';
 import { EXIT_ERROR, EXIT_OK } from '../exit-codes';
 import type { CliIo } from '../output';
 
-/**
- * Upper bound for `--ttl`, in seconds — one year. Redis rejects absurd expiries server-side,
- * which would otherwise surface as a misleading "failed to reach key-value backend" message;
- * we reject them up front as invalid input instead.
- */
+/** One-year --ttl cap: reject absurd expiries up front instead of a misleading backend error. */
 const MAX_TTL_SECONDS = 365 * 24 * 60 * 60;
 
 interface SetOptions {
@@ -21,13 +17,7 @@ interface SetDeps {
   readonly io: CliIo;
 }
 
-/**
- * `set <namespace> <key> <value> [--ttl <seconds>]`.
- *
- * Composes the namespaced key through the existing library (`namespacedKey`) and writes it
- * through the injected `IKeyValueStore` (3-layer/DI, FR2).
- * Returns an exit code rather than calling `process.exit`, so it is fully unit-testable.
- */
+/** `set <namespace> <key> <value> [--ttl <seconds>]` — returns an exit code, never calls process.exit. */
 export async function runSet(
   deps: SetDeps,
   namespace: string,
@@ -87,9 +77,7 @@ export function registerSetCommand(program: Command, deps: { createStore: () => 
       try {
         process.exitCode = await runSet({ store, io: deps.io }, namespace, key, value, options);
       } finally {
-        // Guard close() so a teardown failure (e.g. quit() rejecting when Redis was never
-        // reachable) can't throw out of finally and mask the user-friendly error + exit code
-        // runSet already produced for that exact failure case.
+        // A close() failure must not mask the command's own error + exit code.
         try {
           await store.close();
         } catch (closeError) {

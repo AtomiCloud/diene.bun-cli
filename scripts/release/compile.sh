@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Cross-compile the standalone CLI binary for every supported target. Entry + binary name come
-# from package.json .bin; the three glibc targets are an inline (bunTarget, artifact) list.
+# Cross-compile the standalone CLI (entry from package.json .bin) for every supported target.
 die() {
   echo "❌ $1" >&2
   exit 1
 }
 
-# `bun build --compile` needs the runtime deps installed (fresh CI runner has none).
 ./scripts/ci/setup.sh
 
 ENTRY="$(jq -r '.bin | to_entries[0].value' package.json)"

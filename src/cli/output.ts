@@ -1,18 +1,9 @@
 import chalk from 'chalk';
 
-/**
- * Presentation boundary for the CLI (FR1).
- *
- * Command handlers depend on this `CliIo` interface, never on `chalk`/`console` directly,
- * so colour formatting lives in one place and handlers stay unit-testable with a captured
- * fake (see `tests/unit/cli/`).
- */
+/** Presentation boundary — handlers depend on this, never on chalk/console, so they stay testable. */
 export interface CliIo {
-  /** A successful outcome — rendered green to stdout. */
   success(message: string): void;
-  /** A non-fatal advisory (e.g. key not found) — rendered yellow to stdout. */
   warn(message: string): void;
-  /** A failure — rendered red to stderr. */
   error(message: string): void;
 }
 

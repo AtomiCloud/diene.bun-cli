@@ -31,8 +31,7 @@ plugins:
     version: 6.0.3
     config:
       changelogFile: Changelog.md
-  # Stamp the version into package.json (the CLI's --version and the nix package read it),
-  # committed below so binaries compiled at the tag report the real version (mirrors iridium).
+  # Stamp package.json so builds from the tag report the real version.
   - module: '@semantic-release/exec'
     version: 6.0.3
     config:

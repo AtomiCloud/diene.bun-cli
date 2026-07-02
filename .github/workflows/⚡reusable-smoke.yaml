@@ -15,7 +15,6 @@ jobs:
     name: Smoke
     runs-on: ${{ fromJSON(inputs.runs_on) }}
     steps:
-      # Read-only job (repo content + downloaded artifact), so no persisted git token is needed.
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -24,8 +23,7 @@ jobs:
         with:
           name: cli-binaries
           path: dist/bin
-      # Run the standalone binary directly. `binary` is routed through env: (not interpolated into
-      # the run script text) so a caller input can never be expanded into shell source.
+      # `binary` goes through env: so caller input is never expanded into shell source.
       - name: Smoke
         env:
           BINARY: ${{ inputs.binary }}

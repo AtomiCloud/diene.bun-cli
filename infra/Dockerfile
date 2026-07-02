@@ -1,7 +1,4 @@
-# CLI-binary image: a distroless runtime whose entrypoint IS the standalone CLI (FR7).
-# The glibc Bun binary is cross-compiled per target arch and dropped onto a distroless glibc
-# base, so the image is the CLI with no Bun/Node runtime layer.
-# glibc Bun image so the compiled binary links glibc (matches the distroless/cc runtime).
+# Distroless image whose entrypoint is the standalone CLI binary (no Bun/Node runtime layer).
 FROM oven/bun:1.3.13 AS build
 ARG TARGETARCH
 WORKDIR /app
@@ -13,10 +10,7 @@ COPY src ./src
 RUN target="$([ "${TARGETARCH}" = "arm64" ] && echo bun-linux-arm64 || echo bun-linux-x64-baseline)" && \
   bun build ./bin/bun-cli.ts --compile --target="${target}" --outfile /bun-cli
 
-# distroless/cc ships glibc + libgcc + libstdc++, which the Bun binary links against
-# (base-debian12 lacks libstdc++, so the binary would fail to exec there). The :nonroot tag
-# defaults the container user to an unprivileged uid (preserving the USER bun posture the
-# library image had) — a CLI needs no root, and distroless/cc has a nonroot variant for this.
+# cc-debian12 carries the libstdc++ the Bun binary links; :nonroot keeps the container unprivileged.
 FROM gcr.io/distroless/cc-debian12:nonroot AS runtime
 COPY --from=build /bun-cli /usr/bin/bun-cli
 ENTRYPOINT ["/usr/bin/bun-cli"]

@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# GoReleaser post-build hook: overwrite GoReleaser's Go placeholder with the prebuilt Bun binary.
-# GoReleaser's `prebuilt` builder is Pro-only, so — exactly like sulfone.iridium — we compile a
-# trivial Go stub and swap the real Bun binary (from prebuilt/, built by compile.sh) in here.
-# Args: <dest-path> <goos> <goarch>.
+# Swap the prebuilt Bun binary over GoReleaser's Go stub (its prebuilt builder is Pro-only).
 die() {
   echo "❌ $1" >&2
   exit 1

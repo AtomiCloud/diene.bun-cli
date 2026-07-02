@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Stamp the release version into package.json (semantic-release prepare step, mirrors iridium's
-# bump.sh). The CLI (--version) and the nix package both read package.json, and semantic-release
-# commits this before tagging, so binaries compiled at the tag report the real version.
+# Stamp the release version into package.json so builds from the tag report the real version.
 die() {
   echo "❌ $1" >&2
   exit 1

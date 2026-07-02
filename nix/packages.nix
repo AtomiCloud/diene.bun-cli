@@ -48,9 +48,7 @@ let
       }
     );
 
-    # In-repo CLI package output: `nix build .#bun-cli` produces the standalone Bun binary
-    # (FR7). Dependencies are vendored through a fixed-output derivation so the compile step
-    # runs offline and reproducibly. No atomipkgs push.
+    # `nix build .#bun-cli` — deps vendored via a fixed-output derivation so the build is offline.
     cli =
       let
         bunPkg = pkgs-2605.bun;
@@ -88,10 +86,7 @@ let
           dontFixup = true;
           outputHashMode = "recursive";
           outputHashAlgo = "sha256";
-          # Pinned hash of node_modules. WHEN DEPENDENCIES CHANGE (package.json/bun.lock), this
-          # goes stale and `nix build .#bun-cli` fails with a hash mismatch. To update: set this
-          # to pkgs.lib.fakeHash, run `nix build .#bun-cli`, and copy the "got: sha256-..." value
-          # from the error back here.
+          # On dep change: set to pkgs.lib.fakeHash, build, copy the "got:" hash back here.
           outputHash = "sha256-SpnLtJvmEIfnzXhU8odLN4Mj/2ap/TgxiX3VSOuDNnQ=";
         };
       in

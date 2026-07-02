@@ -1,13 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# One-line installer served from the GitHub release (FR7/FR10):
+# One-line installer served from the GitHub release:
 #   curl -fsSL https://github.com/AtomiCloud/diene.bun-cli/releases/latest/download/install.sh | bash
-#
-# Detects os/arch, downloads the matching archive + checksums.txt from the release, verifies the
-# checksum, and installs the binary to BIN_DIR (default: ~/.local/bin).
-#
-# Standalone (no Bun at install time), so it carries its own copy of the repo/binary identity.
 REPO="AtomiCloud/diene.bun-cli"
 BINARY="bun-cli"
 

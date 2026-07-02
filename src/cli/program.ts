@@ -6,23 +6,12 @@ import { type PromptFn, inquirerPrompt, registerGetCommand } from './commands/ge
 import { registerSetCommand } from './commands/set';
 import { type CliIo, consoleIo } from './output';
 
-/**
- * CLI composition layer (the guardrail tier).
- *
- * Builds the commander program and injects the store factory + IO + prompt into the command
- * handlers. Everything the handlers touch is a dependency, so the whole CLI is constructed
- * here and exercised with fakes in unit tests.
- */
+/** Composition root — builds the commander program and injects every handler dependency. */
 export interface ProgramDeps {
-  /** Factory for the key-value store the commands write/read through. */
   readonly createStore: (connection: RedisConnection) => IKeyValueStore;
-  /** Connection the store is built against (from the config surface). */
   readonly connection: RedisConnection;
-  /** Output sink (colour formatting). */
   readonly io: CliIo;
-  /** Interactive prompt for missing arguments. */
   readonly prompt: PromptFn;
-  /** Whether the process is attached to an interactive TTY. */
   readonly interactive: boolean;
 }
 
